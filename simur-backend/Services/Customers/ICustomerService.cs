@@ -1,0 +1,14 @@
+﻿using simur_backend.Models.DTO.V1;
+
+namespace simur_backend.Services.Customers
+{
+    public interface ICustomerService
+    {
+        Task<CustomerDto> CreateCustomerAsync(CustomerDto customer);
+        Task<CustomerDto?> FindCustomerByDocumentAsync(string document);
+        Task<CustomerDto?> FindCustomerByIdAsync(string id);
+        Task<CustomerDto> UpdateCustomerAsync(CustomerDto customer);
+        Task<bool> DeleteCustomerByDocumentAsync(string document);
+
+    }
+}
