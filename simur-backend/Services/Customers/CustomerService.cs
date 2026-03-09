@@ -19,10 +19,10 @@ namespace simur_backend.Services.Customers
                 phoneConformity = false;
             }
 
-            if (current.Birthdate != null && updated.Birthdate == null)
-            {
-                birthdateConformity = false;
-            }
+            //if (current.Birthdate != null && updated.Birthdate == null)
+            //{
+            //    birthdateConformity = false;
+            //}
 
             if (!string.IsNullOrEmpty(current.ExternalBuyerId) && string.IsNullOrEmpty(updated.ExternalBuyerId))
             {
@@ -39,7 +39,7 @@ namespace simur_backend.Services.Customers
                 emailConformity = false;
             }
 
-            return phoneConformity && birthdateConformity && buyerIdConformity && addressConformity && emailConformity;
+            return phoneConformity && buyerIdConformity && addressConformity && emailConformity;
         }
 
         public CustomerService(ICustomerRepository repository)
@@ -55,22 +55,23 @@ namespace simur_backend.Services.Customers
             return _mapper.Parse(SavedEntity);
         }
 
-        public async Task<CustomerDto?> FindCustomerByIdAsync(string id)
+        public async Task<CustomerDto> FindCustomerByIdAsync(string id)
         {
             Customer FoundEntity = await _repository.FindCustomerByIdAsync(id);
             return _mapper.Parse(FoundEntity);
         }
 
-        public async Task<CustomerDto?> FindCustomerByDocumentAsync(string document)
+        public async Task<CustomerDto> FindCustomerByDocumentAsync(string document)
         {
             Customer FoundEntity = await _repository.FindCustomerByDocumentAsync(document);
             return _mapper.Parse(FoundEntity);
         }
 
-        public async Task<CustomerDto?> UpdateCustomerAsync(CustomerDto customer)
+        public async Task<CustomerDto> UpdateCustomerAsync(CustomerDto currentEntity, CustomerDto updateCustomer)
         {
-            Customer UpdateCustomer = _mapper.Parse(customer);
-            Customer CurrentEntity = await _repository.FindCustomerByDocumentAsync(customer.Document);
+            Customer CurrentEntity = _mapper.Parse(currentEntity);
+            Customer UpdateCustomer = _mapper.Parse(updateCustomer);
+
             if (CurrentEntity.GetHashCode().CompareTo(UpdateCustomer.GetHashCode()) == 0)
             {
                 return _mapper.Parse(CurrentEntity);

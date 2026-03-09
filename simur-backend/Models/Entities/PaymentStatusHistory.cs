@@ -11,8 +11,27 @@ namespace simur_backend.Models.Entities
 {
     public class PaymentStatusHistory
     {
+
+        [BsonId]
+        public Guid Id { get; init; } = Guid.NewGuid();
+
+        [Required]
+        [BsonElement("payment_id")]
+        public Guid PaymentId { get; set; }
+
+        [Required]
+        [EnumDataType(typeof(PaymentStatus))]
+        [JsonConverter(typeof(GetPaymentStatusFromString))]
+        public PaymentStatus Status { get; set; }
+
+        [MaybeNull]
+        public string Reason { get; set; }
+
+        [MaybeNull]
+        public DateTimeOffset ChangedAt { get; set; } = DateTimeOffset.UtcNow;
+
         [JsonConstructor]
-        public PaymentStatusHistory(Guid paymentId, PaymentStatus status, string? reason, DateTimeOffset? changedAt)
+        public PaymentStatusHistory(Guid paymentId, PaymentStatus status, string reason, DateTimeOffset changedAt)
         {
             PaymentId = paymentId;
             Status = status;
@@ -20,7 +39,7 @@ namespace simur_backend.Models.Entities
             ChangedAt = changedAt;
         }
 
-        public PaymentStatusHistory(Guid id, Guid paymentId, PaymentStatus status, string? reason, DateTimeOffset changedAt)
+        public PaymentStatusHistory(Guid id, Guid paymentId, PaymentStatus status, string reason, DateTimeOffset changedAt)
         {
             Id = id;
             PaymentId = paymentId;
@@ -28,26 +47,5 @@ namespace simur_backend.Models.Entities
             Reason = reason;
             ChangedAt = changedAt;
         }
-
-        [BsonId]
-        [JsonPropertyName("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
-        [BsonElement("payment_id")]
-        [JsonPropertyName("payment_id")]
-        public Guid PaymentId { get; set; }
-
-        [EnumDataType(typeof(PaymentStatus))]
-        [JsonConverter(typeof(GetPaymentStatusFromString))]
-        [JsonPropertyName("status")]
-        public PaymentStatus Status { get; set; }
-
-        [MaybeNull]
-        [JsonPropertyName("reason")]
-        public string? Reason { get; set; }
-
-        [MaybeNull]
-        [JsonPropertyName("changed_at_date")]
-        public DateTimeOffset? ChangedAt { get; set; } = DateTimeOffset.UtcNow;
     }
 }

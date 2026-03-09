@@ -5,12 +5,12 @@ namespace simur_backend.Repositories.PaymentRepository
 {
     public interface IPaymentMethodRepository
     {
-        Task<PaymentMethod> CreateAsync(PaymentMethod methodDetails);
-        Task<PaymentMethod?> FindByIdAsync(long id);
-        Task<PaymentMethod> FindByPaymentAsync(Guid paymentId);
-        Task<List<PaymentMethod?>> FindByPaymentTypeAsync(PaymentType type);
-        Task<PaymentMethod> UpdateAsync(PaymentMethod methodDetailsUpdate);
-        Task<PaymentMethod> DeleteAsync(long id);
-        Task<PaymentMethod> DeleteByPaymentIdAsync(Guid id);
+        Task<Models.Entities.PaymentMethod> CreateAsync(Models.Entities.PaymentMethod methodDetails);
+        Task<Models.Entities.PaymentMethod> FindByIdAsync(long id);
+        Task<Models.Entities.PaymentMethod> FindByPaymentAsync(Guid paymentId);
+        Task<List<Models.Entities.PaymentMethod>> FindByPaymentTypeAsync(Models.Constants.PaymentType type);
+        Task<Models.Entities.PaymentMethod> UpdateAsync(Models.Entities.PaymentMethod methodDetailsUpdate);
+        Task<Models.Entities.PaymentMethod> DeleteAsync(long id);
+        Task<Models.Entities.PaymentMethod> DeleteByPaymentIdAsync(Guid id);
     }
 }

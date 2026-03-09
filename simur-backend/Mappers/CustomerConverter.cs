@@ -1,14 +1,12 @@
 ﻿using rest_with_asp_net_10_cviana.Data.Converter.Contract;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
-using System.Numerics;
-using System.Reflection.Metadata;
 
 namespace simur_backend.Mappers
 {
     public class CustomerConverter : IParser<Customer, CustomerDto>, IParser<CustomerDto, Customer>
     {
-        public CustomerDto? Parse(Customer entity)
+        public CustomerDto Parse(Customer entity)
         {
             if (entity == null) return null;
             return new CustomerDto
@@ -24,7 +22,7 @@ namespace simur_backend.Mappers
             };
         }
 
-        public Customer? Parse(CustomerDto dto)
+        public Customer Parse(CustomerDto dto)
         {
             if (dto == null) return null;
             return new Customer
@@ -40,13 +38,13 @@ namespace simur_backend.Mappers
             );
         }
 
-        public List<CustomerDto?> ParseList(List<Customer> origin)
+        public List<CustomerDto> ParseList(List<Customer> origin)
         {
             if (origin == null) return [];
             return [.. origin.Select(Parse)];
         }
 
-        public List<Customer?> ParseList(List<CustomerDto> origin)
+        public List<Customer> ParseList(List<CustomerDto> origin)
         {
             if (origin == null) return [];
             return [.. origin.Select(Parse)];

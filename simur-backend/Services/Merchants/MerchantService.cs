@@ -35,10 +35,12 @@ namespace simur_backend.Services.Merchants
             return _mapper.Parse(FoundEntity);
         }
 
-        public async Task<MerchantDto> UpdateMerchantAsync(MerchantDto merchant)
+        public async Task<MerchantDto> UpdateMerchantAsync(MerchantDto currentMerchant, MerchantDto updateMerchant)
         {
-            Merchant UpdateMerchant = _mapper.Parse(merchant);
-            Merchant CurrentEntity = await _repository.FindMerchantByDocumentAsync(merchant.Document);
+            Merchant CurrentEntity = _mapper.Parse(currentMerchant);
+            if (CurrentEntity == null) throw new BadHttpRequestException("Merchant not found");
+            Merchant UpdateMerchant = _mapper.Parse(updateMerchant);
+
             if( CurrentEntity.GetHashCode().CompareTo(UpdateMerchant.GetHashCode()) == 0 )
             {
                 return _mapper.Parse(CurrentEntity);

@@ -64,9 +64,9 @@ namespace simur_backend.Services.Payments
             return _mapper.Parse(PaymentsFound);
         }
 
-        public async Task<PaymentDto?> FindByIdAsync(Guid paymentId)
+        public async Task<PaymentDto> FindByIdAsync(Guid paymentId)
         {
-            Payment? PaymentFound = await _paymentRepository.FindByIdAsync(paymentId);
+            Payment PaymentFound = await _paymentRepository.FindByIdAsync(paymentId);
             return _mapper.Parse(PaymentFound);
         }
 
@@ -78,7 +78,7 @@ namespace simur_backend.Services.Payments
 
         public async Task<PaymentDto> UpdateAsync(PaymentStatusHistory paymentStatus)
         {
-            Payment? PaymentFound = await _paymentRepository.FindByIdAsync(paymentStatus.PaymentId);
+            Payment PaymentFound = await _paymentRepository.FindByIdAsync(paymentStatus.PaymentId);
             if(PaymentFound == null) throw new ArgumentNullException(nameof(PaymentFound));
 
             paymentStatus.ChangedAt = DateTimeOffset.Now.DateTime;
@@ -92,28 +92,28 @@ namespace simur_backend.Services.Payments
             return _mapper.Parse(PaymentUpdated);
         }
 
-        public async Task<PaymentMethod?> FindDetailsByIdAsync(long id) {
+        public async Task<Models.Entities.PaymentMethod> FindDetailsByIdAsync(long id) {
             return await _paymentMethodRepository.FindByIdAsync(id);
         }
 
-        public async Task<PaymentMethod?> FindDetailsByPaymentIdAsync(Guid PaymentId) {
+        public async Task<Models.Entities.PaymentMethod> FindDetailsByPaymentIdAsync(Guid PaymentId) {
             return await _paymentMethodRepository.FindByPaymentAsync(PaymentId);
         }
 
-        public async Task<List<PaymentMethod?>> FindDetailsByPaymentTypeAsync(PaymentType type) {
+        public async Task<List<Models.Entities.PaymentMethod>> FindDetailsByPaymentTypeAsync(Models.Constants.PaymentType type) {
             return await _paymentMethodRepository.FindByPaymentTypeAsync(type);
         }
 
-        public async Task<PaymentMethod> CreatePaymentDetailsAsync(PaymentMethod paymentMethodDetails) {
+        public async Task<Models.Entities.PaymentMethod> CreatePaymentDetailsAsync(Models.Entities.PaymentMethod paymentMethodDetails) {
             return await _paymentMethodRepository.CreateAsync(paymentMethodDetails);
         }
 
-        public async Task<PaymentMethod> UpdatePaymentDetailsAsync(PaymentMethod paymentMethodDetailsUpdate) {
+        public async Task<Models.Entities.PaymentMethod> UpdatePaymentDetailsAsync(Models.Entities.PaymentMethod paymentMethodDetailsUpdate) {
             await _paymentMethodRepository.UpdateAsync(paymentMethodDetailsUpdate);
             return await _paymentMethodRepository.FindByIdAsync(paymentMethodDetailsUpdate.Id);
         }
 
-        public async Task<PaymentMethod> DeletePaymentDetailsAsync(long id) {
+        public async Task<Models.Entities.PaymentMethod> DeletePaymentDetailsAsync(long id) {
             return await _paymentMethodRepository.DeleteAsync(id);
         }
 

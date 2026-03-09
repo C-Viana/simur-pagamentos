@@ -56,7 +56,7 @@ namespace simur_backend.Repositories.PaymentRepository
             return results;
         }
 
-        public async Task<Payment?> FindByIdAsync(Guid id)
+        public async Task<Payment> FindByIdAsync(Guid id)
         {
             FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.Id, id);
             return await _collection.Find(filter).FirstOrDefaultAsync();

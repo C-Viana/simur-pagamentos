@@ -2,8 +2,8 @@
 {
     public interface IParser<O, D>
     {
-        public D? Parse(O origin);
+        public D Parse(O origin);
 
-        public List<D?> ParseList(List<O> origin);
+        public List<D> ParseList(List<O> origin);
     }
 }

@@ -40,7 +40,7 @@ namespace simur_backend.Repositories.PaymentRepository
             else return result;
         }
 
-        public async Task<PaymentStatusHistory?> FindHistoryInfoAsync(Guid id)
+        public async Task<PaymentStatusHistory> FindHistoryInfoAsync(Guid id)
         {
             FilterDefinition<PaymentStatusHistory> filter = Builders<PaymentStatusHistory>.Filter.Eq(entity => entity.Id, id);
             return await _collection.Find(filter).FirstOrDefaultAsync();

@@ -10,23 +10,22 @@ namespace simur_backend.Models.Entities.Payments
     public class CreditCardDetails : IPaymentDetails
     {
         [Required]
-        [JsonPropertyName("last_four_digits")]
         public string LastFourDigits { get; set; }
         [Required]
-        [JsonPropertyName("card_holder_name")]
         public string CardHolderName { get; set; }
         [Required]
-        [JsonPropertyName("expiration_date")]
         public DateOnly ExpirationDate { get; set; }
         [Required]
-        [JsonPropertyName("brand")]
         [JsonConverter(typeof(GetPaymentBrandFromString))]
         public PaymentBrand Brand { get; set; }
         [Required]
-        [JsonPropertyName("installments")]
         public int Installments { get; set; }
         [Required]
-        [JsonPropertyName("interest_amount")]
         public decimal InterestAmount { get; set; }
+
+        public CreditCardDetails()
+        {
+            base.PaymentType = Constants.PaymentType.CREDIT_CARD;
+        }
     }
 }

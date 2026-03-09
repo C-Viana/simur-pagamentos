@@ -3,13 +3,25 @@ using simur_backend.Models.Entities.Payments;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 
 namespace simur_backend.Models.Entities
 {
     public class PaymentMethod
     {
-        public PaymentMethod(Guid paymentId, PaymentType? paymentType, IPaymentDetails paymentDetails)
+
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long Id { get; init; }
+
+        [MaybeNull]
+        public Guid? PaymentId { get; set; }
+
+        [EnumDataType(typeof(PaymentType))]
+        public PaymentType PaymentType { get; set; }
+
+        public IPaymentDetails PaymentDetails { get; set; }
+
+        public PaymentMethod(Guid paymentId, PaymentType paymentType, IPaymentDetails paymentDetails)
         {
             PaymentId = paymentId;
             PaymentType = paymentType;
@@ -23,22 +35,5 @@ namespace simur_backend.Models.Entities
             PaymentType = paymentType;
             PaymentDetails = paymentDetails;
         }
-
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [JsonPropertyName("id")]
-        public long Id { get; set; }
-
-        [MaybeNull]
-        [JsonPropertyName("payment_id")]
-        public Guid? PaymentId { get; set; }
-
-        [EnumDataType(typeof(PaymentType))]
-        [MaybeNull]
-        [JsonPropertyName("payment_type")]
-        public PaymentType? PaymentType { get; set; }
-
-        [JsonPropertyName("payment_details")]
-        public IPaymentDetails PaymentDetails { get; set; }
     }
 }

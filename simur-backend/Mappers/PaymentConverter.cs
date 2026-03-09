@@ -6,7 +6,7 @@ namespace simur_backend.Mappers
 {
     public class PaymentConverter : IParser<Payment, PaymentDto>, IParser<PaymentDto, Payment>
     {
-        public PaymentDto? Parse(Payment origin)
+        public PaymentDto Parse(Payment origin)
         {
             if(origin == null) return null;
             return new PaymentDto()
@@ -15,21 +15,20 @@ namespace simur_backend.Mappers
                 ExternalOrderId = origin.ExternalOrderId,
                 Amount = origin.Amount,
                 Currency = origin.Currency,
-                CustomerDocument = origin.CustomerDocument,
-                MerchantDocument = origin.MerchantDocument,
+                PayerDocument = origin.CustomerDocument,
+                SellerDocument = origin.MerchantDocument,
                 Status = origin.Status,
-                MethodType = origin.MethodType,
                 CreatedAt = origin.CreatedAt
             };
         }
 
-        public List<PaymentDto?> ParseList(List<Payment> origin)
+        public List<PaymentDto> ParseList(List<Payment> origin)
         {
             if (origin == null) return [null];
             return [.. origin.Select(Parse)];
         }
 
-        public Payment? Parse(PaymentDto origin)
+        public Payment Parse(PaymentDto origin)
         {
             if (origin == null) return null;
             return new Payment(
@@ -37,15 +36,14 @@ namespace simur_backend.Mappers
                 origin.ExternalOrderId,
                 origin.Amount,
                 origin.Currency,
-                origin.MethodType,
                 origin.Status,
                 origin.CreatedAt,
-                origin.MerchantDocument,
-                origin.CustomerDocument
+                origin.SellerDocument,
+                origin.PayerDocument
             );
         }
 
-        public List<Payment?> ParseList(List<PaymentDto> origin)
+        public List<Payment> ParseList(List<PaymentDto> origin)
         {
             if (origin == null) return [null];
             return [.. origin.Select(Parse)];

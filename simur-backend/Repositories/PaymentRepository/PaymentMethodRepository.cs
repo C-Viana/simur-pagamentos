@@ -6,57 +6,57 @@ namespace simur_backend.Repositories.PaymentRepository
 {
     public class PaymentMethodRepository : IPaymentMethodRepository
     {
-        private readonly IMongoCollection<PaymentMethod> _collection;
+        private readonly IMongoCollection<Models.Entities.PaymentMethod> _collection;
 
         public PaymentMethodRepository(IMongoDatabase database)
         {
-            _collection = database.GetCollection<PaymentMethod>("payment_methods");
+            _collection = database.GetCollection<Models.Entities.PaymentMethod>("payment_methods");
         }
 
-        public async Task<PaymentMethod> CreateAsync(PaymentMethod methodDetails)
+        public async Task<Models.Entities.PaymentMethod> CreateAsync(Models.Entities.PaymentMethod methodDetails)
         {
             await _collection.InsertOneAsync(methodDetails);
             return await _collection.Find(entity => entity.PaymentId == methodDetails.PaymentId).FirstOrDefaultAsync();
         }
 
-        public async Task<PaymentMethod> DeleteAsync(long id)
+        public async Task<Models.Entities.PaymentMethod> DeleteAsync(long id)
         {
-            FilterDefinition<PaymentMethod> filter = Builders<PaymentMethod>.Filter.Eq(entity => entity.Id, id);
-            PaymentMethod DeletedMethod = await _collection.FindOneAndDeleteAsync(filter);
+            FilterDefinition<Models.Entities.PaymentMethod> filter = Builders<Models.Entities.PaymentMethod>.Filter.Eq(entity => entity.Id, id);
+            Models.Entities.PaymentMethod DeletedMethod = await _collection.FindOneAndDeleteAsync(filter);
             return DeletedMethod;
         }
 
-        public async Task<PaymentMethod> DeleteByPaymentIdAsync(Guid paymentId)
+        public async Task<Models.Entities.PaymentMethod> DeleteByPaymentIdAsync(Guid paymentId)
         {
-            FilterDefinition<PaymentMethod> filter = Builders<PaymentMethod>.Filter.Eq(entity => entity.PaymentId, paymentId);
-            PaymentMethod DeletedMethod = await _collection.FindOneAndDeleteAsync(filter);
+            FilterDefinition<Models.Entities.PaymentMethod> filter = Builders<Models.Entities.PaymentMethod>.Filter.Eq(entity => entity.PaymentId, paymentId);
+            Models.Entities.PaymentMethod DeletedMethod = await _collection.FindOneAndDeleteAsync(filter);
             return DeletedMethod;
         }
 
-        public async Task<PaymentMethod?> FindByIdAsync(long id)
+        public async Task<Models.Entities.PaymentMethod> FindByIdAsync(long id)
         {
-            FilterDefinition<PaymentMethod> filter = Builders<PaymentMethod>.Filter.Eq(entity => entity.Id, id);
-            PaymentMethod FoundMethod = await _collection.Find(filter).FirstOrDefaultAsync();
+            FilterDefinition<Models.Entities.PaymentMethod> filter = Builders<Models.Entities.PaymentMethod>.Filter.Eq(entity => entity.Id, id);
+            Models.Entities.PaymentMethod FoundMethod = await _collection.Find(filter).FirstOrDefaultAsync();
             return FoundMethod;
         }
 
-        public async Task<PaymentMethod> FindByPaymentAsync(Guid paymentId)
+        public async Task<Models.Entities.PaymentMethod> FindByPaymentAsync(Guid paymentId)
         {
-            FilterDefinition<PaymentMethod> filter = Builders<PaymentMethod>.Filter.Eq(entity => entity.PaymentId, paymentId);
-            PaymentMethod FoundMethod = await _collection.Find(filter).FirstOrDefaultAsync();
+            FilterDefinition<Models.Entities.PaymentMethod> filter = Builders<Models.Entities.PaymentMethod>.Filter.Eq(entity => entity.PaymentId, paymentId);
+            Models.Entities.PaymentMethod FoundMethod = await _collection.Find(filter).FirstOrDefaultAsync();
             return FoundMethod;
         }
 
-        public async Task<List<PaymentMethod?>> FindByPaymentTypeAsync(PaymentType type)
+        public async Task<List<Models.Entities.PaymentMethod>> FindByPaymentTypeAsync(Models.Constants.PaymentType type)
         {
             FilterDefinition<PaymentMethod> filter = Builders<PaymentMethod>.Filter.Eq(entity => entity.PaymentType, type);
-            List<PaymentMethod> FoundMethods = await _collection.Find(filter).ToListAsync();
+            List<Models.Entities.PaymentMethod> FoundMethods = await _collection.Find((FilterDefinition<Models.Entities.PaymentMethod>)filter).ToListAsync();
             return FoundMethods;
         }
 
-        public async Task<PaymentMethod> UpdateAsync(PaymentMethod methodDetailsUpdate)
+        public async Task<Models.Entities.PaymentMethod> UpdateAsync(Models.Entities.PaymentMethod methodDetailsUpdate)
         {
-            FilterDefinition<PaymentMethod> filter = Builders<PaymentMethod>.Filter.Eq(entity => entity.Id, methodDetailsUpdate.Id);
+            FilterDefinition<Models.Entities.PaymentMethod> filter = Builders<Models.Entities.PaymentMethod>.Filter.Eq(entity => entity.Id, methodDetailsUpdate.Id);
             await _collection.ReplaceOneAsync(filter, methodDetailsUpdate);
             return await _collection.Find(filter).FirstOrDefaultAsync();
         }

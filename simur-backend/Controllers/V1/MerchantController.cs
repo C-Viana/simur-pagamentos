@@ -20,10 +20,11 @@ namespace simur_backend.Controllers.V1
         [HttpGet("document/{document}", Name = "FindMerchantByDocument")]
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindMerchantByDocument(string document)
         {
             _logger.LogInformation("Fetching for merchant document {document}", document);
-            MerchantDto? FoundEntity = await _merchantService.FindMerchantByDocumentAsync(document);
+            MerchantDto FoundEntity = await _merchantService.FindMerchantByDocumentAsync(document);
             if (FoundEntity == null)
             {
                 _logger.LogInformation("No merchant found with document {document}", document);
@@ -35,10 +36,11 @@ namespace simur_backend.Controllers.V1
         [HttpGet("{id}", Name = "FindMerchantById")]
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindMerchantById(string id)
         {
             _logger.LogInformation("No merchant found with document {id}", id);
-            MerchantDto? FoundEntity = await _merchantService.FindMerchantByIdAsync(id);
+            MerchantDto FoundEntity = await _merchantService.FindMerchantByIdAsync(id);
             if (FoundEntity == null)
             {
                 _logger.LogInformation("No merchant found with document {id}", id);
@@ -50,6 +52,7 @@ namespace simur_backend.Controllers.V1
         [HttpPost(Name = "CreateMerchant")]
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateMerchant([FromBody] MerchantDto merchant)
         {
             _logger.LogInformation("Creating a new merchant with document {document}", merchant.Document);
@@ -66,12 +69,17 @@ namespace simur_backend.Controllers.V1
         [HttpPut(Name = "UpdateMerchant")]
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateMerchant([FromBody] MerchantDto merchant)
         {
-            _logger.LogInformation("Update required for merchant with document {document}", merchant.Document);
             if (string.IsNullOrWhiteSpace(merchant.Id.ToString()))
                 return BadRequest("Merchant ID must be informed to update a document");
-            MerchantDto UpdatedEntity = await _merchantService.UpdateMerchantAsync(merchant);
+
+            MerchantDto CurrentMerchant = await _merchantService.FindMerchantByIdAsync(merchant.Id.ToString());
+            if (CurrentMerchant == null) return BadRequest("Merchant not Found");
+
+            _logger.LogInformation("Update required for merchant with document {document}", merchant.Document);
+            MerchantDto UpdatedEntity = await _merchantService.UpdateMerchantAsync(CurrentMerchant, merchant);
             if (UpdatedEntity == null)
             {
                 _logger.LogWarning("Merchant with document {document} could not be updated due data unconformity", merchant.Document);
@@ -84,6 +92,7 @@ namespace simur_backend.Controllers.V1
         [HttpDelete("document/{document}", Name = "DeleteMerchantByDocument")]
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteMerchantByDocument(string document)
         {
             _logger.LogInformation("Deletion required for merchant with document {document}", document);

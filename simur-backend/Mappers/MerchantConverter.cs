@@ -6,7 +6,7 @@ namespace simur_backend.Mappers
 {
     public class MerchantConverter : IParser<Merchant, MerchantDto>, IParser<MerchantDto, Merchant>
     {
-        public MerchantDto? Parse(Merchant origin)
+        public MerchantDto Parse(Merchant origin)
         {
             if(origin == null) return null;
             return new MerchantDto()
@@ -23,11 +23,11 @@ namespace simur_backend.Mappers
             };
         }
 
-        public List<MerchantDto?> ParseList(List<Merchant> origin)
+        public List<MerchantDto> ParseList(List<Merchant> origin)
         {
             return [.. origin.Select(Parse)];
         }
-        public Merchant? Parse(MerchantDto dto)
+        public Merchant Parse(MerchantDto dto)
         {
             if (dto == null) return null;
             return new Merchant
@@ -44,7 +44,7 @@ namespace simur_backend.Mappers
             );
         }
 
-        public List<Merchant?> ParseList(List<MerchantDto> dto)
+        public List<Merchant> ParseList(List<MerchantDto> dto)
         {
             return [.. dto.Select(Parse)];
         }

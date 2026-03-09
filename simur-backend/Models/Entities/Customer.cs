@@ -7,7 +7,7 @@ namespace simur_backend.Models.Entities
     public class Customer
     {
         [BsonId]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; init; } = Guid.NewGuid();
 
         [Required]
         [NotNull]
@@ -17,16 +17,16 @@ namespace simur_backend.Models.Entities
         [NotNull]
         [Length(11, 14)]
         public string Document { get; set; }
-
+        
         [EmailAddress]
         public string Email { get; set; }
 
         public string Phone { get; set; }
-        public DateOnly? Birthdate { get; set; }
-        public Address? Address { get; set; }
-        public string? ExternalBuyerId { get; set; }
+        public DateOnly Birthdate { get; set; }
+        public Address Address { get; set; }
+        public string ExternalBuyerId { get; set; }
 
-        public Customer(Guid id, string fullName, string document, string email, string phone, DateOnly? birthdate, Address? address, string? externalBuyerId)
+        public Customer(Guid id, string fullName, string document, string email, string phone, DateOnly birthdate, Address address, string externalBuyerId)
         {
             Id = id;
             FullName = fullName;
@@ -38,7 +38,7 @@ namespace simur_backend.Models.Entities
             ExternalBuyerId = externalBuyerId;
         }
 
-        public Customer(string fullName, string document, string email, string phone, DateOnly? birthdate, Address? address, string? externalBuyerId)
+        public Customer(string fullName, string document, string email, string phone, DateOnly birthdate, Address address, string externalBuyerId)
         {
             FullName = fullName;
             Document = document;
