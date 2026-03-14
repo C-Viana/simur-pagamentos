@@ -6,11 +6,16 @@ using System.Text.Json.Serialization;
 namespace simur_backend.Models.Entities.Payments
 {
     [BsonDiscriminator("payment_details")]
-    [BsonKnownTypes(typeof(PixDetails), typeof(CreditCardDetails))]
+    [BsonKnownTypes(
+        typeof(PixDetails),
+        typeof(CreditCardDetails),
+        typeof(BoletoDetails)
+        )]
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
     [JsonDerivedType(typeof(PixDetails), "PIX")]
     [JsonDerivedType(typeof(CreditCardDetails), "CREDIT_CARD")]
+    [JsonDerivedType(typeof(BoletoDetails), "BOLETO")]
     public abstract class IPaymentDetails
     {
         [EnumDataType(typeof(PaymentType))]

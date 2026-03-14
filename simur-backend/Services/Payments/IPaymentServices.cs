@@ -6,7 +6,9 @@ namespace simur_backend.Services.Payments
     public interface IPaymentServices
     {
         Task<PaymentDto> CreateAsync(PaymentDto payment);
-        Task<PaymentDto> UpdateAsync(PaymentStatusHistory paymentStatus);
+        Task<PaymentDto> CreateCompletePaymentAsync(PaymentDto payment, HttpContext context);
+        Task<PaymentDto> ReplacePaymentAsync(PaymentDto payment);
+        Task<PaymentDto> UpdatePaymentStatusAsync(PaymentStatusHistory paymentStatus);
         Task<PaymentDto> DeleteAsync(Guid paymentId);
         Task<PaymentDto> FindByIdAsync(Guid paymentId);
         Task<PaymentDto> FindByExternalOrderIdAsync(string externalOrderId);
@@ -14,11 +16,11 @@ namespace simur_backend.Services.Payments
         Task<List<PaymentDto>> FindByCustomerDocAsync(string CustomerId);
         Task<List<PaymentDto>> FindByCreatedAtAsync(DateOnly paymentDate);
 
-        Task<Models.Entities.PaymentMethod> FindDetailsByIdAsync(long id);
-        Task<Models.Entities.PaymentMethod> FindDetailsByPaymentIdAsync(Guid PaymentId);
-        Task<List<Models.Entities.PaymentMethod>> FindDetailsByPaymentTypeAsync(Models.Constants.PaymentType type);
-        Task<Models.Entities.PaymentMethod> CreatePaymentDetailsAsync(Models.Entities.PaymentMethod paymentMethodDetails);
-        Task<Models.Entities.PaymentMethod> UpdatePaymentDetailsAsync(Models.Entities.PaymentMethod paymentMethodDetails);
-        Task<Models.Entities.PaymentMethod> DeletePaymentDetailsAsync(long id);
+        Task<PaymentMethod> FindDetailsByIdAsync(Guid id);
+        Task<PaymentMethod> FindDetailsByPaymentIdAsync(Guid PaymentId);
+        Task<List<PaymentMethod>> FindDetailsByPaymentTypeAsync(Models.Constants.PaymentType type);
+        Task<PaymentMethod> CreatePaymentDetailsAsync(PaymentMethod paymentMethodDetails);
+        Task<PaymentMethod> UpdatePaymentDetailsAsync(PaymentMethod paymentMethodDetails);
+        Task<PaymentMethod> DeletePaymentDetailsAsync(Guid id);
     }
 }

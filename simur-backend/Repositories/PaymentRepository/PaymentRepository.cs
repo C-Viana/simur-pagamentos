@@ -14,10 +14,10 @@ namespace simur_backend.Repositories.PaymentRepository
             _collection = database.GetCollection<Payment>("payments");
         }
 
-        public async Task<Payment> CreateAsync(Payment payment)
+        public async Task<Payment> CreateAsync(IClientSessionHandle session, Payment payment)
         {
-            await _collection.InsertOneAsync(payment);
-            return await _collection.Find(entity => entity.ExternalOrderId == payment.ExternalOrderId).FirstOrDefaultAsync();
+            await _collection.InsertOneAsync(session, payment);
+            return await _collection.Find(session, entity => entity.ExternalOrderId == payment.ExternalOrderId).FirstOrDefaultAsync();
         }
 
         public Task<Payment> DeleteAsync(Guid id)
@@ -56,6 +56,12 @@ namespace simur_backend.Repositories.PaymentRepository
             return results;
         }
 
+        public async Task<Payment> FindByIdAsync(IClientSessionHandle session, Guid id)
+        {
+            FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.Id, id);
+            return await _collection.Find(session, filter).FirstOrDefaultAsync();
+        }
+
         public async Task<Payment> FindByIdAsync(Guid id)
         {
             FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.Id, id);
@@ -69,10 +75,10 @@ namespace simur_backend.Repositories.PaymentRepository
             return results;
         }
 
-        public async Task<Payment> UpdateAsync(Payment payment)
+        public async Task<Payment> UpdateAsync(IClientSessionHandle session, Payment payment)
         {
             FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.Id, payment.Id);
-            await _collection.ReplaceOneAsync(filter, payment);
+            await _collection.ReplaceOneAsync(session, filter, payment);
             return await _collection.Find(filter).FirstOrDefaultAsync();
         }
     }

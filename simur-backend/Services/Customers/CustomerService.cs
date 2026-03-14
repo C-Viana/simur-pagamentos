@@ -12,7 +12,7 @@ namespace simur_backend.Services.Customers
 
         private bool ValidadeCustomerPayloadForUpdate(Customer current, Customer updated)
         {
-            bool phoneConformity = true, birthdateConformity = true, buyerIdConformity = true, addressConformity = true, emailConformity = true;
+            bool phoneConformity = true, buyerIdConformity = true, addressConformity = true, emailConformity = true;
 
             if (!string.IsNullOrEmpty(current.Phone) && string.IsNullOrEmpty(updated.Phone))
             {

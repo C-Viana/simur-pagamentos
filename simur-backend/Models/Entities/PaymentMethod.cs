@@ -1,4 +1,6 @@
-﻿using simur_backend.Models.Constants;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using simur_backend.Models.Constants;
 using simur_backend.Models.Entities.Payments;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,9 +11,8 @@ namespace simur_backend.Models.Entities
     public class PaymentMethod
     {
 
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; init; }
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         [MaybeNull]
         public Guid? PaymentId { get; set; }
@@ -28,7 +29,7 @@ namespace simur_backend.Models.Entities
             PaymentDetails = paymentDetails;
         }
 
-        public PaymentMethod(long id, Guid paymentId, PaymentType paymentType, IPaymentDetails paymentDetails)
+        public PaymentMethod(Guid id, Guid paymentId, PaymentType paymentType, IPaymentDetails paymentDetails)
         {
             Id = id;
             PaymentId = paymentId;

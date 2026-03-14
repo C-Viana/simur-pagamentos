@@ -1,0 +1,31 @@
+services:
+    mongo1:
+        image: mongo:latest
+        hostname: localhost
+        container_name: mongo1
+        ports:
+            - "27018:27017"
+        command: ["--replSet", "rs0", "--bind_ip_all"]
+        volumes:
+            - mongo1-data:/data/db
+        networks:
+            - mongo-cluster
+        
+    mongo-setup:
+        image: mongo:latest
+        container_name: mongo-setup
+        depends_on: [mongo1]
+        volumes:
+            - ./init-mongo-replicaset.sh:/scripts/init-mongo-replicaset.sh
+        entrypoint: ["bash", "/scripts/init-mongo-replicaset.sh"]
+        networks:
+            - mongo-cluster
+        restart: "no"
+
+volumes:
+    mongo1-data:
+        driver: local
+
+networks:
+    mongo-cluster:
+        driver: bridge

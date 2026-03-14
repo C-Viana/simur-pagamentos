@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
+using static System.Collections.Specialized.BitVector32;
 
 namespace simur_backend.Repositories.PaymentRepository
 {
@@ -12,10 +13,10 @@ namespace simur_backend.Repositories.PaymentRepository
             _collection = database.GetCollection<PaymentStatusHistory>("payment_status_history");
         }
 
-        public async Task<PaymentStatusHistory> CreateHistoryInfoAsync(PaymentStatusHistory paymentUpdate)
+        public async Task<PaymentStatusHistory> CreateHistoryInfoAsync(IClientSessionHandle session, PaymentStatusHistory paymentUpdate)
         {
-            await _collection.InsertOneAsync(paymentUpdate);
-            return await _collection.Find(entity => entity.PaymentId == paymentUpdate.PaymentId).FirstOrDefaultAsync();
+            await _collection.InsertOneAsync(session, paymentUpdate);
+            return await _collection.Find(session, entity => entity.PaymentId == paymentUpdate.PaymentId).FirstOrDefaultAsync();
         }
 
         public async Task<long> DeleteAllPaymentHistoryAsync(Guid paymentId)
