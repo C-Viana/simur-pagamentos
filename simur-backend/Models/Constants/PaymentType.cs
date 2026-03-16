@@ -10,7 +10,8 @@ namespace simur_backend.Models.Constants
         [Description("Cartão de Crédito")] CREDIT_CARD,
         [Description("Cartão de Débito")] DEBIT_CARD,
         [Description("Carteira Digital")] DIGITAL_WALLET,
-        [Description("Pix")] PIX,
+        [Description("Pix dinâmico")] PIX_DYNAMIC,
+        [Description("Pix estático")] PIX_STATIC,
         [Description("Criptomoeda")] CRYPTO,
         [Description("Vale Presente/Refeição/Alimentação")] VOUCHER
     }

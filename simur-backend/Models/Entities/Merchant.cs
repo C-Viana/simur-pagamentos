@@ -39,9 +39,13 @@ namespace simur_backend.Models.Entities
 
         [Required]
         [NotNull]
+        public string MCC { get; set; } //Merchant Category Code: according ISO 18245
+
+        [Required]
+        [NotNull]
         public string BankAccountId { get; set; }
 
-        public Merchant(string companyName, string tradeName, string document, string email, string phoneNumber, Address address, string pixKey, string bankAccountId)
+        public Merchant(string companyName, string tradeName, string document, string email, string phoneNumber, Address address, string pixKey, string mcc, string bankAccountId)
         {
             Document = document;
             TradeName = tradeName;
@@ -50,10 +54,11 @@ namespace simur_backend.Models.Entities
             PhoneNumber = phoneNumber;
             Address = address;
             PixKey = pixKey;
+            MCC = mcc;
             BankAccountId = bankAccountId;
         }
 
-        public Merchant(Guid id, string companyName, string tradeName, string document, string email, string phoneNumber, Address address, string pixKey, string bankAccountId)
+        public Merchant(Guid id, string companyName, string tradeName, string document, string email, string phoneNumber, Address address, string pixKey, string mcc, string bankAccountId)
         {
             Id = id;
             Document = document;
@@ -63,6 +68,7 @@ namespace simur_backend.Models.Entities
             PhoneNumber = phoneNumber;
             Address = address;
             PixKey = pixKey;
+            MCC = mcc;
             BankAccountId = bankAccountId;
         }
     }

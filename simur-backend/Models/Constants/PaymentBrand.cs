@@ -9,6 +9,8 @@ namespace simur_backend.Models.Constants
         [Description("American Express")] AMEX,
         [Description("Elo")] ELO,
         [Description("Hipercard")] HIPERCARD,
-        [Description("Alelo")] ALELO
+        [Description("Alelo")] ALELO,
+        [Description("Diners Club")] DINNERSCLUB,
+        [Description("Discover")] DISCOVER
     }
 }

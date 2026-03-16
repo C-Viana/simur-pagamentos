@@ -1,9 +1,7 @@
 ﻿using DnsClient.Internal;
 using Microsoft.AspNetCore.Mvc;
-using simur_backend.Exceptions;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
-using simur_backend.Models.Entities.Payments;
 using simur_backend.Services.Payments;
 
 namespace simur_backend.Controllers.V1
@@ -35,33 +33,6 @@ namespace simur_backend.Controllers.V1
             PaymentDto savedPayment = await _service.CreateCompletePaymentAsync(payment, HttpContext);
             return CreatedAtAction(null, new { savedPayment.Id }, savedPayment);
         }
-
-        //[HttpPost(Name = "CreatePayment")]
-        //[ProducesResponseType(typeof(CustomerDto), StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
-        //public async Task<IActionResult> CreatePayment([FromBody] PaymentDto payment)
-        //{
-        //    _logger.LogInformation("Payment of type {type} requested", payment.PaymentDetails.PaymentType.ToString());
-        //    _logger.LogInformation("Payment requested from {customer} to {seller} from order {order}", payment.PayerDocument, payment.SellerDocument, payment.ExternalOrderId);
-        //    if(payment.PaymentDetails == null) throw new ArgumentNullException("Payment details are either missing or empty. Check the information and try again");
-
-        //    PaymentDto savedPayment = await _service.CreateAsync(payment);
-        //    if (savedPayment == null) throw new PaymentCreationErrorException("Payment Error: the proccess failed due internal error. Try again later.");
-
-        //    if (payment.PaymentDetails.PaymentType == Models.Constants.PaymentType.BOLETO)
-        //    {
-        //        savedPayment.PaymentDetails = ((BoletoDetails)payment.PaymentDetails).GenerateSlipCodes(savedPayment.Id, savedPayment.Amount, HttpContext.Request);
-        //    }
-        //    else
-        //        savedPayment.PaymentDetails = payment.PaymentDetails;
-
-        //    _logger.LogInformation("Payment created with ID {id}. Carring on with payment details", savedPayment.Id.ToString());
-        //    PaymentMethod savedMethod = await _service.CreatePaymentDetailsAsync(new PaymentMethod(savedPayment.Id, savedPayment.PaymentDetails.PaymentType, savedPayment.PaymentDetails));
-        //    _logger.LogInformation("Finished creating {method} payment for order {order}", savedPayment.PaymentDetails.PaymentType, savedPayment.ExternalOrderId);
-        //    return CreatedAtAction(null, new { savedPayment.Id }, savedPayment);
-        //}
 
         [HttpGet("{paymentId}", Name = "FindPaymentById")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]

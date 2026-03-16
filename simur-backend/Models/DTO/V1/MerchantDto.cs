@@ -26,6 +26,8 @@ namespace simur_backend.Models.DTO.V1
 
         public string PixKey { get; set; }
 
+        public string MCC { get; set; } //Merchant Category Code: according ISO 18245
+
         public string BankAccountId { get; set; }
 
         public Address Address { get; set; }

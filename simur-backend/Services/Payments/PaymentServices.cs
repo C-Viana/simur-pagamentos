@@ -13,11 +13,12 @@ namespace simur_backend.Services.Payments
         private readonly IPaymentRepository _paymentRepository;
         private readonly IPaymentStatusHistoryRepository _statusHistoryRepository;
         private readonly IPaymentMethodRepository _paymentMethodRepository;
+        private readonly IMerchantService _merchantService;
         private readonly PaymentConverter _mapper;
         private readonly ILogger<PaymentServices> _logger;
         private readonly IMongoClient _mongoClient;
 
-        public PaymentServices(IPaymentRepository paymentRepository, IPaymentStatusHistoryRepository statusHistoryRepository, IPaymentMethodRepository paymentMethodRepository, ILogger<PaymentServices> logger, IMongoClient mongoClient)
+        public PaymentServices(IPaymentRepository paymentRepository, IPaymentStatusHistoryRepository statusHistoryRepository, IPaymentMethodRepository paymentMethodRepository, ILogger<PaymentServices> logger, IMongoClient mongoClient, IMerchantService merchantService)
         {
             _mapper = new PaymentConverter();
             _paymentRepository = paymentRepository;
@@ -25,6 +26,7 @@ namespace simur_backend.Services.Payments
             _paymentMethodRepository = paymentMethodRepository;
             _logger = logger;
             _mongoClient = mongoClient;
+            _merchantService = merchantService;
         }
 
         public async Task<PaymentDto> CreateCompletePaymentAsync(PaymentDto payment, HttpContext context)
@@ -40,10 +42,18 @@ namespace simur_backend.Services.Payments
                 Payment CreatedPayment = await _paymentRepository.CreateAsync(_sessionHandle, NewPayment);
                 _logger.LogInformation("Payment created with ID {id}. Carring on with payment details", CreatedPayment.Id.ToString());
 
+                MerchantDto merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
+
                 switch (payment.PaymentDetails.PaymentType)
                 {
                     case PaymentType.BOLETO:
                         payment.PaymentDetails = ((BoletoDetails)payment.PaymentDetails).GenerateSlipCodes(CreatedPayment.Id, CreatedPayment.Amount, context.Request);
+                        break;
+                    case PaymentType.PIX_DYNAMIC:
+                        payment.PaymentDetails = ((PixDynamicDetails)payment.PaymentDetails).GenerateDynamicPixPayment(CreatedPayment.Id, merchant, CreatedPayment.Amount, context.Request);
+                        break;
+                    case PaymentType.CREDIT_CARD:
+                        payment.PaymentDetails = ((CreditCardDetails)payment.PaymentDetails);
                         break;
                     default:
                         payment.PaymentDetails = payment.PaymentDetails;

@@ -19,6 +19,7 @@ namespace simur_backend.Mappers
                 PhoneNumber = origin.PhoneNumber,
                 Address = origin.Address,
                 PixKey = origin.PixKey,
+                MCC = origin.MCC,
                 BankAccountId = origin.BankAccountId
             };
         }
@@ -40,6 +41,7 @@ namespace simur_backend.Mappers
                 dto.PhoneNumber,
                 dto.Address,
                 dto.PixKey,
+                dto.MCC,
                 dto.BankAccountId
             );
         }

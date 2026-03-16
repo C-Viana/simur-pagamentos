@@ -1,10 +1,7 @@
 using DnsClient.Internal;
 using Microsoft.AspNetCore.Mvc;
 using simur_backend.Models.DTO.V1;
-using simur_backend.Services;
 using simur_backend.Services.Customers;
-using System.Reflection.Metadata;
-using System.Xml.Linq;
 
 namespace simur_backend.Controllers.V1;
 
