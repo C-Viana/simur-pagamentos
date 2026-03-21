@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Mappers;
+using simur_backend.Messaging;
 using simur_backend.Models.Constants;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
@@ -17,8 +18,9 @@ namespace simur_backend.Services.Payments
         private readonly PaymentConverter _mapper;
         private readonly ILogger<PaymentServices> _logger;
         private readonly IMongoClient _mongoClient;
+        private readonly IMessageBusService _broker;
 
-        public PaymentServices(IPaymentRepository paymentRepository, IPaymentStatusHistoryRepository statusHistoryRepository, IPaymentMethodRepository paymentMethodRepository, ILogger<PaymentServices> logger, IMongoClient mongoClient, IMerchantService merchantService)
+        public PaymentServices(IPaymentRepository paymentRepository, IPaymentStatusHistoryRepository statusHistoryRepository, IPaymentMethodRepository paymentMethodRepository, ILogger<PaymentServices> logger, IMongoClient mongoClient, IMerchantService merchantService, IMessageBusService broker)
         {
             _mapper = new PaymentConverter();
             _paymentRepository = paymentRepository;
@@ -27,6 +29,7 @@ namespace simur_backend.Services.Payments
             _logger = logger;
             _mongoClient = mongoClient;
             _merchantService = merchantService;
+            _broker = broker;
         }
 
         public async Task<PaymentDto> CreateCompletePaymentAsync(PaymentDto payment, HttpContext context)
@@ -42,14 +45,14 @@ namespace simur_backend.Services.Payments
                 Payment CreatedPayment = await _paymentRepository.CreateAsync(_sessionHandle, NewPayment);
                 _logger.LogInformation("Payment created with ID {id}. Carring on with payment details", CreatedPayment.Id.ToString());
 
-                MerchantDto merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
-
                 switch (payment.PaymentDetails.PaymentType)
                 {
                     case PaymentType.BOLETO:
                         payment.PaymentDetails = ((BoletoDetails)payment.PaymentDetails).GenerateSlipCodes(CreatedPayment.Id, CreatedPayment.Amount, context.Request);
                         break;
                     case PaymentType.PIX_DYNAMIC:
+                        MerchantDto merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
+                        if (merchant == null) throw new BadHttpRequestException($"Merchant not found with document {payment.SellerDocument}");
                         payment.PaymentDetails = ((PixDynamicDetails)payment.PaymentDetails).GenerateDynamicPixPayment(CreatedPayment.Id, merchant, CreatedPayment.Amount, context.Request);
                         break;
                     case PaymentType.CREDIT_CARD:
@@ -61,15 +64,18 @@ namespace simur_backend.Services.Payments
                 }
 
                 PaymentMethod SavedMethod = await _paymentMethodRepository.CreateAsync(_sessionHandle, new PaymentMethod(CreatedPayment.Id, payment.PaymentDetails.PaymentType, payment.PaymentDetails));
-                _logger.LogInformation("Finished creating {method} payment for order {order}", payment.PaymentDetails.PaymentType, payment.ExternalOrderId);
+                _logger.LogInformation("Finished creating {method} payment from order {order}", payment.PaymentDetails.PaymentType, payment.ExternalOrderId);
 
-                PaymentStatusHistory paymentUpdate = new(CreatedPayment.Id, CreatedPayment.Status, null, NewPayment.CreatedAt);
-                await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentUpdate);
+                PaymentStatusHistory paymentStatusUpdate = new(CreatedPayment.Id, SavedMethod.PaymentType, CreatedPayment.Status, "Pagamento registrado no sistema", NewPayment.CreatedAt);
+                await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentStatusUpdate);
+                _logger.LogInformation("Finished creating status entry {status} for payment from order {order}", paymentStatusUpdate.Status, payment.ExternalOrderId);
 
                 await _sessionHandle.CommitTransactionAsync();
 
                 PaymentDto paymentResponse = _mapper.Parse(CreatedPayment);
                 paymentResponse.PaymentDetails = SavedMethod.PaymentDetails;
+                _broker.PublishPaymentStatus(paymentStatusUpdate);
+
                 return paymentResponse;
             }
             catch (Exception ex)
@@ -91,8 +97,9 @@ namespace simur_backend.Services.Payments
                 NewPayment.Status = PaymentStatus.CREATED;
                 NewPayment.UpdatedAt = NewPayment.CreatedAt;
                 Payment CreatedPayment = await _paymentRepository.CreateAsync(_sessionHandle, NewPayment);
+                PaymentType type = payment.PaymentDetails.PaymentType;
 
-                PaymentStatusHistory paymentUpdate = new(CreatedPayment.Id, CreatedPayment.Status, null, NewPayment.CreatedAt);
+                PaymentStatusHistory paymentUpdate = new(CreatedPayment.Id, type, CreatedPayment.Status, null, NewPayment.CreatedAt);
                 await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentUpdate);
                 await _sessionHandle.CommitTransactionAsync();
 
@@ -149,30 +156,36 @@ namespace simur_backend.Services.Payments
 
         public async Task<PaymentDto> UpdatePaymentStatusAsync(PaymentStatusHistory paymentStatus)
         {
-            using IClientSessionHandle _sessionHandle = await _mongoClient.StartSessionAsync();
-            _sessionHandle.StartTransaction();
+            using IClientSessionHandle sessionHandler = await _mongoClient.StartSessionAsync();
+            sessionHandler.StartTransaction();
             try
             {
-                Payment PaymentFound = await _paymentRepository.FindByIdAsync(_sessionHandle, paymentStatus.PaymentId);
+                Payment PaymentFound = await _paymentRepository.FindByIdAsync(sessionHandler, paymentStatus.PaymentId);
                 if (PaymentFound == null) throw new ArgumentNullException(nameof(PaymentFound));
 
                 paymentStatus.ChangedAt = DateTimeOffset.Now.DateTime;
-                PaymentStatusHistory NewStatus = await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentStatus);
+                PaymentStatusHistory NewStatus = await _statusHistoryRepository.CreateHistoryInfoAsync(sessionHandler, paymentStatus);
 
                 PaymentFound.Status = paymentStatus.Status;
                 PaymentFound.UpdatedAt = paymentStatus.ChangedAt;
 
-                Payment PaymentUpdated = await _paymentRepository.UpdateAsync(_sessionHandle, PaymentFound);
+                Payment PaymentUpdated = await _paymentRepository.UpdateAsync(sessionHandler, PaymentFound);
 
-                await _sessionHandle.CommitTransactionAsync();
+                _broker.PublishPaymentStatus(paymentStatus);
+                await sessionHandler.CommitTransactionAsync();
                 
-                _logger.LogInformation("Payment {paymentId} has been updated to status {status}", PaymentUpdated.Id, PaymentUpdated.Status);
+                _logger.LogInformation("Payment {paymentId} has been updated to status {status}", PaymentUpdated.Id, paymentStatus.Status);
 
-                return _mapper.Parse(PaymentUpdated);
+                PaymentMethod RelatedDetails = await _paymentMethodRepository.FindByPaymentAsync(paymentStatus.PaymentId);
+                PaymentDto paymentResponse = _mapper.Parse(PaymentUpdated);
+                paymentResponse.PaymentDetails = RelatedDetails.PaymentDetails;
+
+
+                return paymentResponse;
             }
             catch (Exception ex)
             {
-                await _sessionHandle.AbortTransactionAsync();
+                await sessionHandler.AbortTransactionAsync();
                 _logger.LogError(ex, "Payment transaction failed. Update aborted");
                 throw;
             }

@@ -13,15 +13,22 @@ namespace simur_backend.Models.Entities
     {
 
         [BsonId]
-        public Guid Id { get; init; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
         [BsonElement("payment_id")]
         public Guid PaymentId { get; set; }
 
         [Required]
+        [EnumDataType(typeof(PaymentType))]
+        [BsonRepresentation(BsonType.String)]
+        [JsonConverter(typeof(StringEnumSerializer<PaymentType>))]
+        public PaymentType Type { get; set; }
+
+        [Required]
         [EnumDataType(typeof(PaymentStatus))]
-        [JsonConverter(typeof(GetPaymentStatusFromString))]
+        [JsonConverter(typeof(StringEnumSerializer<PaymentStatus>))]
+        [BsonRepresentation(BsonType.String)]
         public PaymentStatus Status { get; set; }
 
         [MaybeNull]
@@ -31,18 +38,20 @@ namespace simur_backend.Models.Entities
         public DateTimeOffset ChangedAt { get; set; } = DateTimeOffset.UtcNow;
 
         [JsonConstructor]
-        public PaymentStatusHistory(Guid paymentId, PaymentStatus status, string reason, DateTimeOffset changedAt)
+        public PaymentStatusHistory(Guid paymentId, PaymentType type, PaymentStatus status, string reason, DateTimeOffset changedAt)
         {
             PaymentId = paymentId;
+            Type = type;
             Status = status;
             Reason = reason;
             ChangedAt = changedAt;
         }
 
-        public PaymentStatusHistory(Guid id, Guid paymentId, PaymentStatus status, string reason, DateTimeOffset changedAt)
+        public PaymentStatusHistory(Guid id, Guid paymentId, PaymentType type, PaymentStatus status, string reason, DateTimeOffset changedAt)
         {
             Id = id;
             PaymentId = paymentId;
+            Type = type;
             Status = status;
             Reason = reason;
             ChangedAt = changedAt;

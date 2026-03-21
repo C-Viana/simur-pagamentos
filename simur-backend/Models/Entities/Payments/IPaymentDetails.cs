@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using simur_backend.Models.Constants;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
@@ -18,8 +19,8 @@ namespace simur_backend.Models.Entities.Payments
     [JsonDerivedType(typeof(BoletoDetails), "BOLETO")]
     public abstract class IPaymentDetails
     {
+        [BsonRepresentation(BsonType.String)]
         [EnumDataType(typeof(PaymentType))]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         [JsonIgnore]
         public Constants.PaymentType PaymentType { get; set; }
     }

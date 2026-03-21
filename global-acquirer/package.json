@@ -1,0 +1,16 @@
+{
+  "name": "global-acquirer",
+  "version": "1.0.0",
+  "description": "Payment Acquirer Simulator",
+  "license": "ISC",
+  "author": "Carlos Viana",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "test"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.9"
+  }
+}

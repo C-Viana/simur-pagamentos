@@ -1,4 +1,7 @@
 using simur_backend.Configurations;
+using simur_backend.Messaging;
+using simur_backend.Models.Constants;
+using simur_backend.Models.Deserealizers;
 using simur_backend.Repositories.CustomerRepository;
 using simur_backend.Repositories.MerchantRepository;
 using simur_backend.Repositories.PaymentRepository;
@@ -11,12 +14,14 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers()
     .AddJsonOptions( options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentBrand>());
+        options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentStatus>());
+        options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentType>());
     });
 
 builder.Services.AddOpenApi();
@@ -33,6 +38,9 @@ builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 builder.Services.AddScoped<IPaymentStatusHistoryRepository, PaymentStatusHistoryRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentServices, PaymentServices>();
+
+builder.Services.AddScoped<IMessageBusService, RabbitMqPublisherService>(); //Creating service for RabbitMQ publisher
+builder.Services.AddHostedService<RabbitMqConsumerService>(); //Creating service for RabbitMQ consumer
 
 var app = builder.Build();
 

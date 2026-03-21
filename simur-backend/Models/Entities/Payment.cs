@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using simur_backend.Models.Constants;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -26,6 +27,7 @@ namespace simur_backend.Models.Entities
         public string Currency { get; set; }
 
         [EnumDataType(typeof(PaymentStatus))]
+        [BsonRepresentation(BsonType.String)]
         public PaymentStatus Status { get; set; } = PaymentStatus.CREATED;
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now.DateTime;
         public DateTimeOffset? UpdatedAt { get; set; }

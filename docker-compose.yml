@@ -22,7 +22,39 @@ services:
             - mongo-cluster
         restart: "no"
 
+    broker:
+        image: rabbitmq:3-management
+        container_name: rabbitmq
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+        environment:
+            RABBITMQ_DEFAULT_USER: admin
+            RABBITMQ_DEFAULT_PASS: 12345678
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 40s
+    
+    glogal-acquirer:
+        container_name: glogal-acquirer
+        image: node:20
+        ports:
+            - 3000:3000
+        volumes:
+        - ./global-acquirer:/backend
+        command: bash -c "cd backend && npm i && npm start"
+        restart: on-failure
+        depends_on:
+            broker:
+                condition: service_healthy
+
 volumes:
+    rabbitmq_data:
     mongo1-data:
         driver: local
 

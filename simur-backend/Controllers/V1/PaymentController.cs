@@ -101,7 +101,7 @@ namespace simur_backend.Controllers.V1
             _logger.LogInformation("Fetching payments created at {id}", merchantDoc);
             List<PaymentDto> foundPayments = await _service.FindByMerchantDocAsync(merchantDoc);
 
-            if (foundPayments == null) return BadRequest($"No payments found for customer {merchantDoc}");
+            if (foundPayments.Count < 1) return BadRequest($"No payments found for customer {merchantDoc}");
             foreach (var item in foundPayments)
             {
                 PaymentMethod detail = await _service.FindDetailsByPaymentIdAsync(item.Id);

@@ -18,6 +18,7 @@ namespace simur_backend.Models.Entities
         public Guid? PaymentId { get; set; }
 
         [EnumDataType(typeof(PaymentType))]
+        [BsonRepresentation(BsonType.String)]
         public PaymentType PaymentType { get; set; }
 
         public IPaymentDetails PaymentDetails { get; set; }
