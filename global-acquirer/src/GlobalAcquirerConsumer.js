@@ -26,7 +26,7 @@ const broker = {
     DeadLetters: {
       Exchange: "payments.dlx",
       Queue: "failed.payments",
-      RoutingKey: "simur.dead.payments",
+      RoutingKey: "simur.failed.payments",
       MgsTtl: 300000
     }
   }
@@ -44,6 +44,7 @@ async function connectRabbitMq() {
       }
     })
     channel = await connection.createChannel()
+    channel.prefetch(1);
   console.log('Channel created successfully')
   }
   connection.on('error', (err) => {
@@ -66,6 +67,8 @@ function updatePaymentStatus(payment) {
     case 'PIX_DYNAMIC':
     case 'PIX_STATIC':
         return pixManager.setPixStatus(payment)
+    case 'DEBIT_CARD':
+        return cardManager.setDebitCardStatus(payment)
     default:
         console.log("Payment data is not recognized")
   }
@@ -73,17 +76,14 @@ function updatePaymentStatus(payment) {
 
 async function publishStatusUpdate(msg, messageContent) {
   try {
-    await channel.assertExchange(broker.RabbitMq.Publisher.Exchange, 'direct', { durable: true });
-
     const queueArgs = {
         arguments: { 
         'x-dead-letter-exchange': broker.RabbitMq.DeadLetters.Exchange,
-        'x-dead-letter-routing-key': broker.RabbitMq.DeadLetters.RoutingKey,
-        'x-message-ttl': broker.RabbitMq.DeadLetters.MgsTtl
+        'x-dead-letter-routing-key': broker.RabbitMq.DeadLetters.RoutingKey
       }
     }
-
-    await channel.assertQueue(broker.RabbitMq.Publisher.Queue, { durable: true, arguments: queueArgs.arguments });
+    await channel.assertExchange(broker.RabbitMq.Publisher.Exchange, 'direct', { durable: true });
+    await channel.assertQueue(broker.RabbitMq.Publisher.Queue, { durable: true, arguments: queueArgs.arguments});
     await channel.bindQueue(broker.RabbitMq.Publisher.Queue, broker.RabbitMq.Publisher.Exchange, broker.RabbitMq.Publisher.RoutingKey);
 
     channel.publish(
@@ -100,12 +100,25 @@ async function publishStatusUpdate(msg, messageContent) {
 }
 
 async function runConsumerChannel() {
+  //DEAD LETTER QUEUE
+  await channel.assertExchange(broker.RabbitMq.DeadLetters.Exchange, 'direct', { durable: true });
+  await channel.assertQueue(broker.RabbitMq.DeadLetters.Queue, { durable: true});
+  await channel.bindQueue(broker.RabbitMq.DeadLetters.Queue, broker.RabbitMq.DeadLetters.Exchange, broker.RabbitMq.DeadLetters.RoutingKey);
+  // --------------------------------------------------------
+  //CONSUMER QUEUE
+  const queueArgs = {
+      arguments: { 
+      'x-dead-letter-exchange': broker.RabbitMq.DeadLetters.Exchange,
+      'x-dead-letter-routing-key': broker.RabbitMq.DeadLetters.RoutingKey
+    }
+  }
   await channel.assertExchange(broker.RabbitMq.Consumer.Exchange, 'direct', { durable: true });
-  await channel.assertQueue(broker.RabbitMq.Consumer.Queue, {durable: true});
+  await channel.assertQueue(broker.RabbitMq.Consumer.Queue, {durable: true, arguments: queueArgs.arguments });
   await channel.bindQueue(broker.RabbitMq.Consumer.Queue, broker.RabbitMq.Consumer.Exchange, broker.RabbitMq.Consumer.RoutingKey);
-
-  console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", broker.RabbitMq.Consumer.Queue);
+  // --------------------------------------------------------
   // STARTING CONSUMING MESSAGES HERE
+  console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", broker.RabbitMq.Consumer.Queue);
+  // --------------------------------------------------------
   channel.consume(broker.RabbitMq.Consumer.Queue, (msg) => {
       if (msg !== null) {
           try {
@@ -122,12 +135,12 @@ async function runConsumerChannel() {
               console.log(`LOG >>> ChangedAt: ${paymentStatus.ChangedAt}`);
 
               const updatedStatus = updatePaymentStatus(paymentStatus);
-              channel.ack(msg);
               publishStatusUpdate(msg, JSON.stringify(updatedStatus))
+              channel.ack(msg);
 
           } catch (err) {
               console.error('Erro ao desserializar mensagem:', err);
-              channel.nack(msg, false, false);
+              channel.nack(msg, false, true);
           }
       }
   }, { noAck: false })

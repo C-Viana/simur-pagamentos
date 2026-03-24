@@ -10,13 +10,16 @@ namespace simur_backend.Models.Entities.Payments
     [BsonKnownTypes(
         typeof(PixDynamicDetails),
         typeof(CreditCardDetails),
-        typeof(BoletoDetails)
+        typeof(BoletoDetails),
+        typeof(DebitCardDetails)
         )]
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-    [JsonDerivedType(typeof(PixDynamicDetails), "PIX")]
+    [JsonDerivedType(typeof(PixDynamicDetails), "PIX_DYNAMIC") ]
+    [JsonDerivedType(typeof(PixStaticDetails), "PIX_STATIC")]
     [JsonDerivedType(typeof(CreditCardDetails), "CREDIT_CARD")]
     [JsonDerivedType(typeof(BoletoDetails), "BOLETO")]
+    [JsonDerivedType(typeof(DebitCardDetails), "DEBIT_CARD")]
     public abstract class IPaymentDetails
     {
         [BsonRepresentation(BsonType.String)]

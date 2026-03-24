@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using simur_backend.Configurations;
 using simur_backend.Messaging;
 using simur_backend.Models.Constants;
@@ -48,6 +49,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
+    app.Map("/", () => Results.Redirect("/scalar"));
 }
 
 app.UseHttpsRedirection();

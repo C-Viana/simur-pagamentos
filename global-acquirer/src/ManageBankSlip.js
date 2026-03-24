@@ -22,7 +22,7 @@ function setBankSlipStatus(payment) {
     }
     else if (payment.Status == 'CAPTURED') {
         updatedStatus.Status = 'SETTLED';
-        updatedStatus.Reason = "Valor liquidado para o merchant";
+        updatedStatus.Reason = "Valor liquidado para o beneficiário";
     }
 
     updatedStatus.ChangedAt = new Date()

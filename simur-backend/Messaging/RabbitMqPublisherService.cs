@@ -11,6 +11,7 @@ namespace simur_backend.Messaging
         private readonly ILogger<RabbitMqPublisherService> _logger;
         private readonly IConnection _connection;
         private readonly IChannel _channel;
+        private readonly string _queue;
         private readonly string _exchange;
         private readonly string _routingKey;
 
@@ -31,15 +32,28 @@ namespace simur_backend.Messaging
             _connection = factory.CreateConnectionAsync(rabbitSection["ConnectionName"]).GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
 
+            //Set a Dead Letter Queue
+            _channel.QueueDeclareAsync(rabbitSection["DeadLetters:Queue"], durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueBindAsync(rabbitSection["DeadLetters:Queue"], rabbitSection["DeadLetters:Exchange"], rabbitSection["DeadLetters:RoutingKey"]);
+
+            var queueArgs = new Dictionary<string, object>
+            {
+                { "x-dead-letter-exchange", rabbitSection["DeadLetters:Exchange"] },
+                { "x-dead-letter-routing-key", rabbitSection["DeadLetters:RoutingKey"] }
+            };
+
+            _queue = rabbitSection["Publisher:Queue"];
             _exchange = rabbitSection["Publisher:Exchange"];
             _routingKey = rabbitSection["Publisher:RoutingKey"];
 
             _channel.ExchangeDeclareAsync(_exchange, ExchangeType.Direct, durable: true);
-            _channel.QueueDeclareAsync(rabbitSection["Publisher:Queue"], durable: true, exclusive: false, autoDelete: false);
-            _channel.QueueBindAsync(rabbitSection["Publisher:Queue"], _exchange, _routingKey);
+            _channel.QueueDeclareAsync(_queue, durable: true, exclusive: false, autoDelete: false, arguments: queueArgs);
+            _channel.QueueBindAsync(_queue, _exchange, _routingKey);
+            _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
         }
 
-        public void PublishPaymentStatus(PaymentStatusHistory statusEntry)
+
+        public async Task PublishPaymentStatus(PaymentStatusHistory statusEntry)
         {
             try
             {
@@ -56,16 +70,15 @@ namespace simur_backend.Messaging
 
                 if (!isFinalStatus)
                 {
-                    var payload = JsonSerializer.Serialize(statusEntry);
-                    var byteArray = Encoding.UTF8.GetBytes(payload);
-                    _channel.BasicPublishAsync(_exchange, _routingKey, byteArray);
-                    _logger.LogInformation("RabbitMqPublisherService New status entry {status} with ID {StatusId} pushed to exchange {exchange} / routing {routingKey}", statusEntry.Status, statusEntry.Id, _exchange, _routingKey);
+                    string payload = JsonSerializer.Serialize(statusEntry);
+                    byte[] byteArray = Encoding.UTF8.GetBytes(payload);
+                    await _channel.BasicPublishAsync(_exchange, _routingKey, byteArray);
+                    _logger.LogInformation("New status entry {status} with ID {StatusId} pushed to exchange {exchange} / routing {routingKey}", statusEntry.Status, statusEntry.Id, _exchange, _routingKey);
                 }
                 else
                 {
-                    _logger.LogInformation("RabbitMqConsumerService Payment {PaymentId} has been completed", statusEntry.PaymentId);
+                    _logger.LogInformation("Payment {PaymentId} has been completed", statusEntry.PaymentId);
                 }
-
             }
             catch (Exception ex)
             {
@@ -75,8 +88,8 @@ namespace simur_backend.Messaging
 
         public void Dispose()
         {
-            _channel?.DisposeAsync();
-            _connection?.DisposeAsync();
+            _channel.DisposeAsync();
+            _connection.DisposeAsync();
         }
 
     }

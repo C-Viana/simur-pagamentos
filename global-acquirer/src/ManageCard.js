@@ -40,7 +40,7 @@ function setCreditCardStatus(payment)
         else if (payment.Status == 'CAPTURED')
         {
             updatedStatus.Status = 'SETTLED';
-            updatedStatus.Reason = "Valor liquidado para o merchant";
+            updatedStatus.Reason = "Valor liquidado para o beneficiário";
         }
     }
 
@@ -49,4 +49,40 @@ function setCreditCardStatus(payment)
     return updatedStatus;
 }
 
-module.exports = {setCreditCardStatus}
+function setDebitCardStatus(payment)
+{
+    let updatedStatus = payment
+
+    let factor = Math.random()
+    let issueRate = 0.2
+
+    if(factor <= issueRate && payment.Status == 'CREATED')
+    {
+        updatedStatus.Status = 'FAILED';
+        updatedStatus.Reason = "O pagamento não foi autorizado pela operadora";
+    }
+    else if (factor <= issueRate && payment.Status == 'Autorizado')
+    {
+        updatedStatus.Status = 'REJECTED';
+        updatedStatus.Reason = "O pedido foi cancelado pela operadora";
+    }
+    else
+    {
+        if (payment.Status == 'CREATED')
+        {
+            updatedStatus.Status = 'PROCESSING';
+            updatedStatus.Reason = "Emissor aprovou o valor";
+        }
+        else if (payment.Status == 'PROCESSING')
+        {
+            updatedStatus.Status = 'SETTLED';
+            updatedStatus.Reason = "Valor liquidado para o beneficiário";
+        }
+    }
+
+    updatedStatus.ChangedAt = new Date()
+
+    return updatedStatus;
+}
+
+module.exports = {setCreditCardStatus,setDebitCardStatus}

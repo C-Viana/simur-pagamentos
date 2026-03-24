@@ -30,11 +30,5 @@ namespace simur_backend.Configurations
             services.AddScoped<IMessageBusService, RabbitMqPublisherService>();
             return services;
         }
-
-        public static async Task<IServiceCollection> CloseRabbitMqBroker(this IServiceCollection services)
-        {
-            await _connection.CloseAsync();
-            return services;
-        }
     }
 }

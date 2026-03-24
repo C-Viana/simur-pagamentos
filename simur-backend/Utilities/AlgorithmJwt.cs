@@ -9,7 +9,7 @@ namespace simur_backend.Utilities
 {
     public class AlgorithmJwt
     {
-        public static string EncodePaymentToJWT(PixPayload pixPayloadData)
+        public static string EncodeDynamicPaymentToJWT(PixDynamicPayload pixPayloadData)
         {
             JwtSecurityTokenHandler handler = new();
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")));

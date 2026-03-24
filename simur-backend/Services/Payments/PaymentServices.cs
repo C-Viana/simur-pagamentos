@@ -44,6 +44,7 @@ namespace simur_backend.Services.Payments
                 NewPayment.UpdatedAt = NewPayment.CreatedAt;
                 Payment CreatedPayment = await _paymentRepository.CreateAsync(_sessionHandle, NewPayment);
                 _logger.LogInformation("Payment created with ID {id}. Carring on with payment details", CreatedPayment.Id.ToString());
+                MerchantDto merchant = null;
 
                 switch (payment.PaymentDetails.PaymentType)
                 {
@@ -51,12 +52,20 @@ namespace simur_backend.Services.Payments
                         payment.PaymentDetails = ((BoletoDetails)payment.PaymentDetails).GenerateSlipCodes(CreatedPayment.Id, CreatedPayment.Amount, context.Request);
                         break;
                     case PaymentType.PIX_DYNAMIC:
-                        MerchantDto merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
+                        merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
                         if (merchant == null) throw new BadHttpRequestException($"Merchant not found with document {payment.SellerDocument}");
                         payment.PaymentDetails = ((PixDynamicDetails)payment.PaymentDetails).GenerateDynamicPixPayment(CreatedPayment.Id, merchant, CreatedPayment.Amount, context.Request);
                         break;
+                    case PaymentType.PIX_STATIC:
+                        merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
+                        if (merchant == null) throw new BadHttpRequestException($"Merchant not found with document {payment.SellerDocument}");
+                        payment.PaymentDetails = ((PixStaticDetails)payment.PaymentDetails).GenerateStaticPixPayment(CreatedPayment.Id, merchant, CreatedPayment.Amount, context.Request);
+                        break;
                     case PaymentType.CREDIT_CARD:
                         payment.PaymentDetails = ((CreditCardDetails)payment.PaymentDetails);
+                        break;
+                    case PaymentType.DEBIT_CARD:
+                        payment.PaymentDetails = ((DebitCardDetails)payment.PaymentDetails);
                         break;
                     default:
                         payment.PaymentDetails = payment.PaymentDetails;

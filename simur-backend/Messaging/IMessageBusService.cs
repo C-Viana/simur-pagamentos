@@ -5,6 +5,6 @@ namespace simur_backend.Messaging
 {
     public interface IMessageBusService
     {
-        void PublishPaymentStatus(PaymentStatusHistory data);
+        Task PublishPaymentStatus(PaymentStatusHistory data);
     }
 }

@@ -1,6 +1,7 @@
-﻿using RabbitMQ.Client;
+﻿using Polly;
+using Polly.Retry;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using simur_backend.Models.Constants;
 using simur_backend.Models.Entities;
 using simur_backend.Services.Payments;
 using System.Text;
@@ -16,14 +17,11 @@ namespace simur_backend.Messaging
 
         private IConnection _connection;
         private IChannel _channel;
+        private AsyncRetryPolicy _retryPolicy;
 
         private string _consumerExchange;
         private string _consumerRoutingKey;
         private string _consumerQueue;
-
-        private string _publisherExchange;
-        private string _publisherRoutingKey;
-        private string _publisherQueue;
 
         private string _dlqExchange;
         private string _dlqRoutingKey;
@@ -38,7 +36,7 @@ namespace simur_backend.Messaging
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("RabbitMqConsumerService STOPPING Consumer service");
+            _logger.LogInformation("STOPPING Consumer service");
             if (_channel != null)
             {
                 await _channel.CloseAsync();
@@ -54,7 +52,17 @@ namespace simur_backend.Messaging
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("RabbitMqConsumerService EXECUTING Consumer service - Starting loop");
+            _logger.LogInformation("EXECUTING Consumer service - Starting loop");
+
+            _retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(3,
+                    retryAttempt => TimeSpan.FromSeconds((30 * retryAttempt)),
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        _logger.LogInformation("Attempt {retryCount} after error: {exception.Message}", retryCount, exception.Message);
+                    });
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -64,7 +72,7 @@ namespace simur_backend.Messaging
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "RabbitMqConsumerService Error on RabbitMQ consumer. Trying to reconnect in 10s...");
+                    _logger.LogError(ex, "Error on RabbitMQ consumer. Trying to reconnect in 10s...");
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
             }
@@ -73,9 +81,6 @@ namespace simur_backend.Messaging
         private async Task InitializeRabbitMQ()
         {
             var rabbitSection = _configuration.GetSection("MessageBroker:RabbitMQ");
-            _publisherExchange = rabbitSection["Publisher:Exchange"];
-            _publisherRoutingKey = rabbitSection["Publisher:RoutingKey"];
-            _publisherQueue = rabbitSection["Publisher:Queue"];
 
             var factory = new ConnectionFactory
             {
@@ -94,13 +99,13 @@ namespace simur_backend.Messaging
             _dlqRoutingKey = rabbitSection["DeadLetters:RoutingKey"];
             _dlqQueue = rabbitSection["DeadLetters:Queue"];
             await _channel.QueueDeclareAsync(_dlqQueue, durable: true, exclusive: false, autoDelete: false);
+            await _channel.QueueBindAsync(_dlqQueue, _dlqExchange, _dlqRoutingKey);
+
             var queueArgs = new Dictionary<string, object>
             {
-                { "x-dead-letter-exchange", _dlqExchange },          // ou um exchange específico
-                { "x-dead-letter-routing-key", _dlqRoutingKey },    // rota para a DLQ
-                { "x-message-ttl", 300000 }                        // opcional: expira mensagem após 5 min
+                { "x-dead-letter-exchange", _dlqExchange },
+                { "x-dead-letter-routing-key", _dlqRoutingKey }
             };
-
             //Set a consumer queue for payments
             _consumerExchange = rabbitSection["Consumer:Exchange"];
             _consumerRoutingKey = rabbitSection["Consumer:RoutingKey"];
@@ -108,43 +113,48 @@ namespace simur_backend.Messaging
 
             await _channel.ExchangeDeclareAsync(_consumerExchange, ExchangeType.Direct, durable: true);
             await _channel.QueueDeclareAsync(_consumerQueue, durable: true, exclusive: false, autoDelete: false, arguments: queueArgs);
+            await _channel.QueueBindAsync(_consumerQueue, _consumerExchange, _consumerRoutingKey);
+
             await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
 
-            _logger.LogInformation("RabbitMqConsumerService: Consumer connected to queue {Queue}", _consumerQueue);
+            _logger.LogInformation("Consumer connected to queue {Queue}", _consumerQueue);
         }
 
         public async Task ConsumePayments(CancellationToken stoppingToken)
         {
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            
+
             consumer.ReceivedAsync += async (model, eventArgs) =>
             {
+                using var scope = _scopeFactory.CreateScope();
+                var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentServices>();
+
                 try
                 {
-                    using var scope = _scopeFactory.CreateScope();
-                    var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentServices>();
-
-                    byte[] body = eventArgs.Body.ToArray();
-                    string message = Encoding.UTF8.GetString(body);
-                    PaymentStatusHistory receivedStatus = JsonSerializer.Deserialize<PaymentStatusHistory>(message);
-
-                    PaymentStatusHistory newStatusEntry = new (
-                        receivedStatus.PaymentId,
-                        receivedStatus.Type,
-                        receivedStatus.Status,
-                        receivedStatus.Reason,
-                        receivedStatus.ChangedAt
-                    );
-
-                    _logger.LogInformation("RabbitMqConsumerService Updating payment {PaymentId} to status {Status}", newStatusEntry.PaymentId, newStatusEntry.Status);
-
                     // Atualiza o status no banco
-                    await paymentService.UpdatePaymentStatusAsync(newStatusEntry);
+                    await _retryPolicy.ExecuteAsync(async () =>
+                    {
+                        byte[] body = eventArgs.Body.ToArray();
+                        string message = Encoding.UTF8.GetString(body);
+                        PaymentStatusHistory receivedStatus = JsonSerializer.Deserialize<PaymentStatusHistory>(message);
+
+                        PaymentStatusHistory newStatusEntry = new(
+                            receivedStatus.PaymentId,
+                            receivedStatus.Type,
+                            receivedStatus.Status,
+                            receivedStatus.Reason,
+                            receivedStatus.ChangedAt
+                        );
+
+                        _logger.LogInformation("Updating payment {PaymentId} to status {Status}", newStatusEntry.PaymentId, newStatusEntry.Status);
+                        await paymentService.UpdatePaymentStatusAsync(newStatusEntry);
+                    });
+
                     await _channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "RabbitMqConsumerService Failed to process message. Rejecting...");
+                    _logger.LogError(ex, "Failed to process message. Message sent to DLQ");
                     await _channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
                 }
             };
@@ -154,11 +164,7 @@ namespace simur_backend.Messaging
                 autoAck: false,
                 consumer: consumer);
 
-            // Mantém o consumer vivo até o cancelamento
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(5000, stoppingToken);
-            }
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
     }
