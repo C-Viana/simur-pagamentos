@@ -30,6 +30,7 @@ namespace simur_backend.Controllers.V1
                 _logger.LogInformation("No merchant found with document {document}", document);
                 return NotFound($"No merchant found with document {document}");
             }
+            
             return Ok(FoundEntity);
         }
 

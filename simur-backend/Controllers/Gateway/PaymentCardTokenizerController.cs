@@ -14,7 +14,7 @@ namespace simur_backend.Controllers.Gateway
             //int totalBrands = brands.Length - 1;
             //return brands[new Random().Next(totalBrands)];
 
-            if (cardNumber.StartsWith("4011") || cardNumber.StartsWith("4312") || cardNumber.StartsWith("4389") || cardNumber.StartsWith("6062") || cardNumber.StartsWith("6063") || cardNumber.StartsWith("6082"))
+            if (cardNumber.StartsWith("4011") || cardNumber.StartsWith("4312") || cardNumber.StartsWith("4389") || cardNumber.StartsWith("6063") || cardNumber.StartsWith("6082"))
                 return PaymentBrand.ELO;
             else if (cardNumber.StartsWith("51") || cardNumber.StartsWith("55") || cardNumber.StartsWith("2221") || cardNumber.StartsWith("2720"))
                 return PaymentBrand.MASTERCARD;

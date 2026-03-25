@@ -1,5 +1,6 @@
 using Scalar.AspNetCore;
 using simur_backend.Configurations;
+using simur_backend.Hypermedia.Filters;
 using simur_backend.Messaging;
 using simur_backend.Models.Constants;
 using simur_backend.Models.Deserealizers;
@@ -15,7 +16,9 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers()
+builder.Services.AddControllers(
+    options => options.Filters.Add<HypermediaFilter>()
+    )
     .AddJsonOptions( options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
@@ -43,6 +46,8 @@ builder.Services.AddScoped<IPaymentServices, PaymentServices>();
 builder.Services.AddScoped<IMessageBusService, RabbitMqPublisherService>(); //Creating service for RabbitMQ publisher
 builder.Services.AddHostedService<RabbitMqConsumerService>(); //Creating service for RabbitMQ consumer
 
+builder.Services.AddHateoasConfiguration();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -58,5 +63,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseHateoasRoutes();
 
 app.Run();

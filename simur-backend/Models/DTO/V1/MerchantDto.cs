@@ -1,11 +1,11 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using simur_backend.Hypermedia;
 using simur_backend.Models.Entities;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace simur_backend.Models.DTO.V1
 {
-    public class MerchantDto
+    public class MerchantDto : ISupportHypermedia
     {
         [BsonId]
         public Guid Id { get; set; }
@@ -31,5 +31,7 @@ namespace simur_backend.Models.DTO.V1
         public string BankAccountId { get; set; }
 
         public Address Address { get; set; }
+
+        public List<HypermediaLinks> Links { get; set; } = [];
     }
 }

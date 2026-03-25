@@ -12,41 +12,23 @@ namespace simur_backend.Messaging
     public class RabbitMqConsumerService : BackgroundService
     {
         private readonly ILogger<RabbitMqPublisherService> _logger;
-        private readonly IConfiguration _configuration;
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        private IConnection _connection;
-        private IChannel _channel;
         private AsyncRetryPolicy _retryPolicy;
-
-        private string _consumerExchange;
-        private string _consumerRoutingKey;
-        private string _consumerQueue;
-
-        private string _dlqExchange;
-        private string _dlqRoutingKey;
-        private string _dlqQueue;
+        private readonly IConfiguration _configuration;
+        private readonly IConfigurationSection _sectionPrefix;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private IChannel _channel;
 
         public RabbitMqConsumerService(ILogger<RabbitMqPublisherService> logger, IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
-            _configuration = configuration;
             _scopeFactory = scopeFactory;
+            _configuration = configuration;
+            _sectionPrefix = _configuration.GetSection("MessageBroker:RabbitMQ:Consumer");
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("STOPPING Consumer service");
-            if (_channel != null)
-            {
-                await _channel.CloseAsync();
-                _channel.Dispose();
-            }
-            if (_connection != null)
-            {
-                await _connection.CloseAsync();
-                _connection.Dispose();
-            }
+            await RabbitMqSetupService.CloseConnectionAsync();
             await base.StopAsync(cancellationToken);
         }
 
@@ -80,44 +62,8 @@ namespace simur_backend.Messaging
 
         private async Task InitializeRabbitMQ()
         {
-            var rabbitSection = _configuration.GetSection("MessageBroker:RabbitMQ");
-
-            var factory = new ConnectionFactory
-            {
-                HostName = rabbitSection["Hostname"],
-                UserName = rabbitSection["Username"],
-                Password = rabbitSection["Password"],
-                Port = int.Parse(rabbitSection["Port"]),
-                AutomaticRecoveryEnabled = true
-            };
-
-            _connection = factory.CreateConnectionAsync(rabbitSection["ConnectionName"]).GetAwaiter().GetResult();
-            _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
-
-            //Set a Dead Letter Queue
-            _dlqExchange = rabbitSection["DeadLetters:Exchange"];
-            _dlqRoutingKey = rabbitSection["DeadLetters:RoutingKey"];
-            _dlqQueue = rabbitSection["DeadLetters:Queue"];
-            await _channel.QueueDeclareAsync(_dlqQueue, durable: true, exclusive: false, autoDelete: false);
-            await _channel.QueueBindAsync(_dlqQueue, _dlqExchange, _dlqRoutingKey);
-
-            var queueArgs = new Dictionary<string, object>
-            {
-                { "x-dead-letter-exchange", _dlqExchange },
-                { "x-dead-letter-routing-key", _dlqRoutingKey }
-            };
-            //Set a consumer queue for payments
-            _consumerExchange = rabbitSection["Consumer:Exchange"];
-            _consumerRoutingKey = rabbitSection["Consumer:RoutingKey"];
-            _consumerQueue = rabbitSection["Consumer:Queue"];
-
-            await _channel.ExchangeDeclareAsync(_consumerExchange, ExchangeType.Direct, durable: true);
-            await _channel.QueueDeclareAsync(_consumerQueue, durable: true, exclusive: false, autoDelete: false, arguments: queueArgs);
-            await _channel.QueueBindAsync(_consumerQueue, _consumerExchange, _consumerRoutingKey);
-
-            await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
-
-            _logger.LogInformation("Consumer connected to queue {Queue}", _consumerQueue);
+            _channel = await RabbitMqSetupService.GetChannelAsync(_configuration);
+            _logger.LogInformation("Consumer connected to queue {Queue}", _sectionPrefix["Queue"]);
         }
 
         public async Task ConsumePayments(CancellationToken stoppingToken)
@@ -137,6 +83,8 @@ namespace simur_backend.Messaging
                         byte[] body = eventArgs.Body.ToArray();
                         string message = Encoding.UTF8.GetString(body);
                         PaymentStatusHistory receivedStatus = JsonSerializer.Deserialize<PaymentStatusHistory>(message);
+
+                        _logger.LogInformation($"\n========== PAYMENT RECEIVED BY CONSUMER ==========\nPaymentId: {receivedStatus.PaymentId}\nType: {receivedStatus.Type}\nStatus: {receivedStatus.Status}\nReason: {receivedStatus.Reason}\n==================================================");
 
                         PaymentStatusHistory newStatusEntry = new(
                             receivedStatus.PaymentId,
@@ -160,7 +108,7 @@ namespace simur_backend.Messaging
             };
 
             await _channel.BasicConsumeAsync(
-                queue: _configuration["MessageBroker:RabbitMQ:Consumer:Queue"],
+                queue: _sectionPrefix["Queue"],
                 autoAck: false,
                 consumer: consumer);
 

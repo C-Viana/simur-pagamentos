@@ -1,11 +1,11 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using simur_backend.Hypermedia;
 using simur_backend.Models.Entities;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace simur_backend.Models.DTO.V1
 {
-    public class CustomerDto
+    public class CustomerDto : ISupportHypermedia
     {
         [BsonId]
         public Guid Id { get; set; }
@@ -26,5 +26,7 @@ namespace simur_backend.Models.DTO.V1
         public Address Address { get; set; }
 
         public string ExternalBuyerId { get; set; }
+
+        public List<HypermediaLinks> Links { get; set; } = [];
     }
 }

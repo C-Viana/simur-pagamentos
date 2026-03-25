@@ -78,12 +78,12 @@ namespace simur_backend.Services.Payments
                 PaymentStatusHistory paymentStatusUpdate = new(CreatedPayment.Id, SavedMethod.PaymentType, CreatedPayment.Status, "Pagamento registrado no sistema", NewPayment.CreatedAt);
                 await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentStatusUpdate);
                 _logger.LogInformation("Finished creating status entry {status} for payment from order {order}", paymentStatusUpdate.Status, payment.ExternalOrderId);
+                await _broker.PublishPaymentStatus(paymentStatusUpdate);
 
                 await _sessionHandle.CommitTransactionAsync();
 
                 PaymentDto paymentResponse = _mapper.Parse(CreatedPayment);
                 paymentResponse.PaymentDetails = SavedMethod.PaymentDetails;
-                _broker.PublishPaymentStatus(paymentStatusUpdate);
 
                 return paymentResponse;
             }
@@ -180,7 +180,7 @@ namespace simur_backend.Services.Payments
 
                 Payment PaymentUpdated = await _paymentRepository.UpdateAsync(sessionHandler, PaymentFound);
 
-                _broker.PublishPaymentStatus(paymentStatus);
+                await _broker.PublishPaymentStatus(paymentStatus);
                 await sessionHandler.CommitTransactionAsync();
                 
                 _logger.LogInformation("Payment {paymentId} has been updated to status {status}", PaymentUpdated.Id, paymentStatus.Status);
