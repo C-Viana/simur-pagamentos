@@ -41,6 +41,7 @@ namespace simur_backend.Hypermedia
         {
             if(response.Result is OkObjectResult okObjectResult)
             {
+                if (okObjectResult.Value is null) return false;
                 return CanEnrich(okObjectResult.Value.GetType());
             }
             return false;

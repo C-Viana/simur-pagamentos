@@ -18,6 +18,7 @@ namespace simur_backend.Hypermedia.Filters
             if(context.Result is OkObjectResult objectResult)
             {
                 var enricher = _hypermediaFilterOptions.ContentResponseEnricherList.FirstOrDefault(option => option.CanEnrich(context));
+                if (enricher is null) return;
                 enricher.Enrich(context).Wait();
             }
         }

@@ -1,4 +1,6 @@
 using Scalar.AspNetCore;
+using simur_backend.Auth;
+using simur_backend.Auth.Contract;
 using simur_backend.Configurations;
 using simur_backend.Hypermedia.Filters;
 using simur_backend.Messaging;
@@ -7,10 +9,12 @@ using simur_backend.Models.Deserealizers;
 using simur_backend.Repositories.CustomerRepository;
 using simur_backend.Repositories.MerchantRepository;
 using simur_backend.Repositories.PaymentRepository;
+using simur_backend.Repositories.UserRepository;
 using simur_backend.Services;
 using simur_backend.Services.Customers;
 using simur_backend.Services.Merchants;
 using simur_backend.Services.Payments;
+using simur_backend.Services.Users;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +35,11 @@ builder.Services.AddControllers(
 builder.Services.AddOpenApi();
 
 builder.Services.AddDatabaseConfiguration(builder.Configuration);
+
+builder.Services.AddAuthConfiguration(builder.Configuration);
+builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserServices, UserServices>();
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -60,6 +69,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

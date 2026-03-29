@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Services;
 
 namespace simur_backend.Controllers.V1
 {
     [ApiController]
+    [Authorize("Bearer")]
     [Route("api/v1/[controller]")]
     public class MerchantController : Controller
     {

@@ -22,6 +22,7 @@ namespace simur_backend.Models.Entities
         public string CompanyName { get; set; }
 
         [Required]
+        [EmailAddress]
         [NotNull]
         public string Email { get; set; }
 

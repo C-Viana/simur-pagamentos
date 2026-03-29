@@ -1,4 +1,5 @@
 ﻿using DnsClient.Internal;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
@@ -8,6 +9,7 @@ namespace simur_backend.Controllers.V1
 {
     [Route("api/v1/[controller]")]
     [ApiController]
+    [Authorize("Bearer")]
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentServices _service;

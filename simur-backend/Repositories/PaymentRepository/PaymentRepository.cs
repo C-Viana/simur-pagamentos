@@ -1,7 +1,5 @@
 ﻿using MongoDB.Driver;
-using SharpCompress.Common;
 using simur_backend.Models.Entities;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace simur_backend.Repositories.PaymentRepository
 {

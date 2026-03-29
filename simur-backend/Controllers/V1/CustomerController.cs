@@ -1,4 +1,5 @@
 using DnsClient.Internal;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Services.Customers;
@@ -6,6 +7,7 @@ using simur_backend.Services.Customers;
 namespace simur_backend.Controllers.V1;
 
 [ApiController]
+[Authorize("Bearer")]
 [Route("api/v1/[controller]")]
 public class CustomerController : ControllerBase
 {
