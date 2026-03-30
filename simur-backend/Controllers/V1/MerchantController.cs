@@ -10,10 +10,10 @@ namespace simur_backend.Controllers.V1
     [Route("api/v1/[controller]")]
     public class MerchantController : Controller
     {
-        private readonly IMerchantService _merchantService;
+        private readonly IMerchantServices _merchantService;
         private readonly ILogger<MerchantController> _logger;
 
-        public MerchantController(IMerchantService merchantService, ILogger<MerchantController> logger)
+        public MerchantController(IMerchantServices merchantService, ILogger<MerchantController> logger)
         {
             _merchantService = merchantService;
             _logger = logger;

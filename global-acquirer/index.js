@@ -1,4 +1,4 @@
-var {createServer} = require('node:http')
+var { createServer } = require('node:http')
 var acquirer = require('./src/GlobalAcquirerConsumer.js')
 
 const hostname = '127.0.0.1';

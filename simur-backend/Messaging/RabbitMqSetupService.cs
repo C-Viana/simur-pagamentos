@@ -12,6 +12,11 @@ namespace simur_backend.Messaging
         private static IConnection _connection;
         private static IChannel _channel;
 
+        private static readonly string HOSTNAME = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME");
+        private static readonly string USERNAME = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
+        private static readonly string PASSWORD = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
+        private static readonly int PORT = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT"));
+
         private static string _publisherQueue;
         private static string _publisherExchange;
         private static string _publisherRoutingKey;
@@ -61,13 +66,13 @@ namespace simur_backend.Messaging
                 { "x-dead-letter-routing-key", _dlqRoutingKey }
             };
 
-            //Set up connection attributes
-            var factory = new ConnectionFactory
+        //Set up connection attributes
+        var factory = new ConnectionFactory
             {
-                HostName = rabbitSection["Hostname"],
-                UserName = rabbitSection["Username"],
-                Password = rabbitSection["Password"],
-                Port = int.Parse(rabbitSection["Port"]),
+                HostName = HOSTNAME,
+                UserName = USERNAME,
+                Password = PASSWORD,
+                Port = PORT,
                 AutomaticRecoveryEnabled = true
             };
 
@@ -80,7 +85,7 @@ namespace simur_backend.Messaging
 
             // ---------------------------------------------------------------------------
             //********************* Create connection and channel ************************
-            _connection = await factory.CreateConnectionAsync(rabbitSection["ConnectionName"]);
+            _connection = await factory.CreateConnectionAsync(Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION_NAME"));
             _channel = await _connection.CreateChannelAsync(channelOpts);
             //****************************************************************************
             // ---------------------------------------------------------------------------

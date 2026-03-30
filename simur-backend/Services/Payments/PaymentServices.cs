@@ -14,13 +14,13 @@ namespace simur_backend.Services.Payments
         private readonly IPaymentRepository _paymentRepository;
         private readonly IPaymentStatusHistoryRepository _statusHistoryRepository;
         private readonly IPaymentMethodRepository _paymentMethodRepository;
-        private readonly IMerchantService _merchantService;
+        private readonly IMerchantServices _merchantService;
         private readonly PaymentConverter _mapper;
         private readonly ILogger<PaymentServices> _logger;
         private readonly IMongoClient _mongoClient;
         private readonly IMessageBusService _broker;
 
-        public PaymentServices(IPaymentRepository paymentRepository, IPaymentStatusHistoryRepository statusHistoryRepository, IPaymentMethodRepository paymentMethodRepository, ILogger<PaymentServices> logger, IMongoClient mongoClient, IMerchantService merchantService, IMessageBusService broker)
+        public PaymentServices(IPaymentRepository paymentRepository, IPaymentStatusHistoryRepository statusHistoryRepository, IPaymentMethodRepository paymentMethodRepository, ILogger<PaymentServices> logger, IMongoClient mongoClient, IMerchantServices merchantService, IMessageBusService broker)
         {
             _mapper = new PaymentConverter();
             _paymentRepository = paymentRepository;
@@ -86,33 +86,6 @@ namespace simur_backend.Services.Payments
                 paymentResponse.PaymentDetails = SavedMethod.PaymentDetails;
 
                 return paymentResponse;
-            }
-            catch (Exception ex)
-            {
-                await _sessionHandle.AbortTransactionAsync();
-                _logger.LogError(ex, "Payment transaction failed");
-                throw;
-            }
-        }
-
-        public async Task<PaymentDto> CreateAsync(PaymentDto payment)
-        {
-            using IClientSessionHandle _sessionHandle = await _mongoClient.StartSessionAsync();
-            _sessionHandle.StartTransaction();
-            try
-            {
-                Payment NewPayment = _mapper.Parse(payment);
-                NewPayment.CreatedAt = DateTimeOffset.Now.DateTime;
-                NewPayment.Status = PaymentStatus.CREATED;
-                NewPayment.UpdatedAt = NewPayment.CreatedAt;
-                Payment CreatedPayment = await _paymentRepository.CreateAsync(_sessionHandle, NewPayment);
-                PaymentType type = payment.PaymentDetails.PaymentType;
-
-                PaymentStatusHistory paymentUpdate = new(CreatedPayment.Id, type, CreatedPayment.Status, null, NewPayment.CreatedAt);
-                await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentUpdate);
-                await _sessionHandle.CommitTransactionAsync();
-
-                return _mapper.Parse(CreatedPayment);
             }
             catch (Exception ex)
             {

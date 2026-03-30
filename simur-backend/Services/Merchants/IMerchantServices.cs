@@ -2,7 +2,7 @@
 
 namespace simur_backend.Services
 {
-    public interface IMerchantService
+    public interface IMerchantServices
     {
         Task<MerchantDto> CreateMerchantAsync(MerchantDto merchant);
         Task<MerchantDto> FindMerchantByDocumentAsync(string document);

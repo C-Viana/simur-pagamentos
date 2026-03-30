@@ -2,7 +2,7 @@
 
 namespace simur_backend.Services.Customers
 {
-    public interface ICustomerService
+    public interface ICustomerServices
     {
         Task<CustomerDto> CreateCustomerAsync(CustomerDto customer);
         Task<CustomerDto> FindCustomerByDocumentAsync(string document);

@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Scalar.AspNetCore;
 using simur_backend.Auth;
 using simur_backend.Auth.Contract;
@@ -18,6 +19,8 @@ using simur_backend.Services.Users;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load();
 
 // Add services to the container.
 builder.Services.AddControllers(
@@ -42,10 +45,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserServices, UserServices>();
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ICustomerServices, CustomerServices>();
 
 builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
-builder.Services.AddScoped<IMerchantService, MerchantService>();
+builder.Services.AddScoped<IMerchantServices, MerchantServices>();
 
 builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 builder.Services.AddScoped<IPaymentStatusHistoryRepository, PaymentStatusHistoryRepository>();

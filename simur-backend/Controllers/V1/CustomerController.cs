@@ -11,10 +11,10 @@ namespace simur_backend.Controllers.V1;
 [Route("api/v1/[controller]")]
 public class CustomerController : ControllerBase
 {
-    private readonly ICustomerService _customerService;
+    private readonly ICustomerServices _customerService;
     private readonly ILogger<CustomerController> _logger;
 
-    public CustomerController(ICustomerService customerService, ILogger<CustomerController> logger)
+    public CustomerController(ICustomerServices customerService, ILogger<CustomerController> logger)
     {
         _customerService = customerService;
         _logger = logger;
@@ -59,7 +59,7 @@ public class CustomerController : ControllerBase
     public async Task<IActionResult> CreateCustomer([FromBody] CustomerDto customer)
     {
         _logger.LogInformation("Creating a new customer with document {document}", customer.Document);
-        if(_customerService.FindCustomerByDocumentAsync(customer.Document).Result != null)
+        if(await _customerService.FindCustomerByDocumentAsync(customer.Document) != null)
         {
             _logger.LogInformation("Customer with document {document} already exists", customer.Document);
             return BadRequest($"Customer with document {customer.Document} already exists");

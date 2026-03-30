@@ -8,26 +8,26 @@ var channel
 
 const broker = {
   RabbitMq: {
-    Hostname: "broker",
-    Port: 5672,
-    Username: "admin",
-    Password: "12345678",
-    ConnectionName: "global-acquirer-service",
+        Hostname: process.env.RABBITMQ_HOSTNAME,
+        Port: process.env.RABBITMQ_PORT,
+        Username: process.env.RABBITMQ_USERNAME,
+        Password: process.env.RABBITMQ_PASSWORD,
+        ConnectionName: process.env.RABBITMQ_CONNECTION_NAME,
     Consumer: {
-      Exchange: "payments",
-      Queue: "ready.payments",
-      RoutingKey: "simur.ready.payments"
+        Exchange: process.env.RABBITMQ_CONSUMER_EXCHANGE,
+        Queue: process.env.RABBITMQ_CONSUMER_QUEUE,
+        RoutingKey: process.env.RABBITMQ_CONSUMER_ROUTINGKEY
     },
     Publisher: {
-      Exchange: "payments",
-      Queue: "updated.payments",
-      RoutingKey: "simur.updated.payments"
+        Exchange: process.env.RABBITMQ_PUBLISHER_EXCHANGE,
+        Queue: process.env.RABBITMQ_PUBLISHER_QUEUE,
+        RoutingKey: process.env.RABBITMQ_PUBLISHER_ROUTINGKEY
     },
     DeadLetters: {
-      Exchange: "payments.dlx",
-      Queue: "failed.payments",
-      RoutingKey: "simur.failed.payments",
-      MgsTtl: 300000
+        Exchange: process.env.RABBITMQ_DEADLETTERS_EXCHANGE,
+        Queue: process.env.RABBITMQ_DEADLETTERS_QUEUE,
+        RoutingKey: process.env.RABBITMQ_DEADLETTERS_ROUTINGKEY,
+        MgsTtl: process.env.RABBITMQ_DEADLETTERS_MGSTTL
     }
   }
 }

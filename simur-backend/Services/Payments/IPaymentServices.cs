@@ -5,7 +5,6 @@ namespace simur_backend.Services.Payments
 {
     public interface IPaymentServices
     {
-        Task<PaymentDto> CreateAsync(PaymentDto payment);
         Task<PaymentDto> CreateCompletePaymentAsync(PaymentDto payment, HttpContext context);
         Task<PaymentDto> ReplacePaymentAsync(PaymentDto payment);
         Task<PaymentDto> UpdatePaymentStatusAsync(PaymentStatusHistory paymentStatus);

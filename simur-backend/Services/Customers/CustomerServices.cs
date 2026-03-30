@@ -5,7 +5,7 @@ using simur_backend.Repositories.CustomerRepository;
 
 namespace simur_backend.Services.Customers
 {
-    public class CustomerService : ICustomerService
+    public class CustomerServices : ICustomerServices
     {
         private readonly ICustomerRepository _repository;
         private readonly CustomerConverter _mapper;
@@ -42,7 +42,7 @@ namespace simur_backend.Services.Customers
             return phoneConformity && buyerIdConformity && addressConformity && emailConformity;
         }
 
-        public CustomerService(ICustomerRepository repository)
+        public CustomerServices(ICustomerRepository repository)
         {
             _repository = repository;
             _mapper = new();

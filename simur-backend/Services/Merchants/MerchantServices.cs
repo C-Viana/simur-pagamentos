@@ -5,12 +5,12 @@ using simur_backend.Repositories.MerchantRepository;
 
 namespace simur_backend.Services.Merchants
 {
-    public class MerchantService : IMerchantService
+    public class MerchantServices : IMerchantServices
     {
         private readonly IMerchantRepository _repository;
         private readonly MerchantConverter _mapper;
 
-        public MerchantService(IMerchantRepository repository)
+        public MerchantServices(IMerchantRepository repository)
         {
             _repository = repository;
             _mapper = new();
