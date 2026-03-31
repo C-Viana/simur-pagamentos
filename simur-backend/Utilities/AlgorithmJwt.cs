@@ -1,5 +1,4 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using simur_backend.Models.Entities;
 using simur_backend.Models.Entities.Payments;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

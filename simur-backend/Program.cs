@@ -3,6 +3,7 @@ using Scalar.AspNetCore;
 using simur_backend.Auth;
 using simur_backend.Auth.Contract;
 using simur_backend.Configurations;
+using simur_backend.Exceptions;
 using simur_backend.Hypermedia.Filters;
 using simur_backend.Messaging;
 using simur_backend.Models.Constants;
@@ -61,6 +62,8 @@ builder.Services.AddHostedService<RabbitMqConsumerService>(); //Creating service
 builder.Services.AddHateoasConfiguration();
 
 var app = builder.Build();
+
+app.UseMiddleware<SimurExceptionHandler>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -79,7 +79,7 @@ namespace simur_backend.Controllers.V1
                 return BadRequest("Merchant ID must be informed to update a document");
 
             MerchantDto CurrentMerchant = await _merchantService.FindMerchantByIdAsync(merchant.Id.ToString());
-            if (CurrentMerchant == null) return BadRequest("Merchant not Found");
+            if (CurrentMerchant == null) return BadRequest($"No merchant was found with ID {merchant.Id.ToString()}. Check if the given ID is correct or if merchant was deleted");
 
             _logger.LogInformation("Update required for merchant with document {document}", merchant.Document);
             MerchantDto UpdatedEntity = await _merchantService.UpdateMerchantAsync(CurrentMerchant, merchant);

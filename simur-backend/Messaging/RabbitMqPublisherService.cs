@@ -1,12 +1,13 @@
 ﻿using RabbitMQ.Client;
 using simur_backend.Models.Constants;
 using simur_backend.Models.Entities;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 
 namespace simur_backend.Messaging
 {
-    public class RabbitMqPublisherService : IMessageBusService, IAsyncDisposable
+    public class RabbitMqPublisherService : IMessageBusService
     {
         private readonly ILogger<RabbitMqPublisherService> _logger;
         private readonly IConfiguration _configuration;
@@ -70,16 +71,16 @@ namespace simur_backend.Messaging
                     _logger.LogInformation("Payment {PaymentId} has been completed", statusEntry.PaymentId);
                 }
             }
+            catch (SerializationException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize payload into a payment status entry");
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to publish payment {PaymentId}", statusEntry.Id);
                 throw;
             }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            //await RabbitMqSetupService.CloseConnectionAsync();
         }
     }
 }

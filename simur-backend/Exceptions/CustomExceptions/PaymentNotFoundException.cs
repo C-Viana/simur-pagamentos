@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace simur_backend.Exceptions
+namespace simur_backend.Exceptions.CustomExceptions
 {
     public class PaymentCreationErrorException : Exception
     {

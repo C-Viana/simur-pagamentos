@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
 
 namespace simur_backend.Repositories.CustomerRepository

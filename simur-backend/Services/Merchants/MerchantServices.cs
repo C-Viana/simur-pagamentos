@@ -38,7 +38,6 @@ namespace simur_backend.Services.Merchants
         public async Task<MerchantDto> UpdateMerchantAsync(MerchantDto currentMerchant, MerchantDto updateMerchant)
         {
             Merchant CurrentEntity = _mapper.Parse(currentMerchant);
-            if (CurrentEntity == null) throw new BadHttpRequestException("Merchant not found");
             Merchant UpdateMerchant = _mapper.Parse(updateMerchant);
 
             if( CurrentEntity.GetHashCode().CompareTo(UpdateMerchant.GetHashCode()) == 0 )

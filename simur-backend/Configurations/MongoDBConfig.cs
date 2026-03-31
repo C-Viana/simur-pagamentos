@@ -2,6 +2,7 @@
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using simur_backend.Exceptions.CustomExceptions;
 
 namespace simur_backend.Configurations
 {
@@ -12,7 +13,7 @@ namespace simur_backend.Configurations
             var mongoConnectionString = configuration.GetSection("DatabaseConnectionString:MongoDB");
             if (string.IsNullOrEmpty(mongoConnectionString["URI"]) || string.IsNullOrEmpty(mongoConnectionString["DbName"]))
             {
-                throw new InvalidOperationException("MongoDB connection string not found in app settings");
+                throw new InvalidEnvironmentSetupException("MongoDB connection string not found in app settings");
             }
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
 

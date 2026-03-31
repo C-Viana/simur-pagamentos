@@ -1,6 +1,5 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
-using static System.Collections.Specialized.BitVector32;
 
 namespace simur_backend.Repositories.PaymentRepository
 {

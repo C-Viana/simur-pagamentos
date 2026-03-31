@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using simur_backend.Exceptions.CustomExceptions;
 using simur_backend.Mappers;
 using simur_backend.Messaging;
 using simur_backend.Models.Constants;
@@ -53,12 +54,12 @@ namespace simur_backend.Services.Payments
                         break;
                     case PaymentType.PIX_DYNAMIC:
                         merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
-                        if (merchant == null) throw new BadHttpRequestException($"Merchant not found with document {payment.SellerDocument}");
+                        if (merchant == null) throw new BadHttpRequestException($"No merchant with document {payment.SellerDocument} was found");
                         payment.PaymentDetails = ((PixDynamicDetails)payment.PaymentDetails).GenerateDynamicPixPayment(CreatedPayment.Id, merchant, CreatedPayment.Amount, context.Request);
                         break;
                     case PaymentType.PIX_STATIC:
                         merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
-                        if (merchant == null) throw new BadHttpRequestException($"Merchant not found with document {payment.SellerDocument}");
+                        if (merchant == null) throw new BadHttpRequestException($"No merchant with document {payment.SellerDocument} was found");
                         payment.PaymentDetails = ((PixStaticDetails)payment.PaymentDetails).GenerateStaticPixPayment(CreatedPayment.Id, merchant, CreatedPayment.Amount, context.Request);
                         break;
                     case PaymentType.CREDIT_CARD:
@@ -143,7 +144,7 @@ namespace simur_backend.Services.Payments
             try
             {
                 Payment PaymentFound = await _paymentRepository.FindByIdAsync(sessionHandler, paymentStatus.PaymentId);
-                if (PaymentFound == null) throw new ArgumentNullException(nameof(PaymentFound));
+                if (PaymentFound == null) throw new PaymentCreationErrorException($"No payment was found with ID {paymentStatus.PaymentId}");
 
                 paymentStatus.ChangedAt = DateTimeOffset.Now.DateTime;
                 PaymentStatusHistory NewStatus = await _statusHistoryRepository.CreateHistoryInfoAsync(sessionHandler, paymentStatus);
@@ -218,7 +219,7 @@ namespace simur_backend.Services.Payments
             _sessionHandle.StartTransaction();
             try{
                 Payment PaymentFound = await _paymentRepository.FindByIdAsync(payment.Id);
-                if (PaymentFound == null) throw new ArgumentNullException(nameof(PaymentFound));
+                if (PaymentFound == null) throw new PaymentCreationErrorException($"No payment was found with ID {payment.Id}");
                 Payment PaymentUpdated = await _paymentRepository.UpdateAsync(_sessionHandle, _mapper.Parse(payment));
                 await _sessionHandle.CommitTransactionAsync();
                 return _mapper.Parse(PaymentUpdated);

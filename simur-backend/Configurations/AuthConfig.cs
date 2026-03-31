@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using simur_backend.Auth.Config;
+using simur_backend.Exceptions.CustomExceptions;
 using System.Text;
 
 namespace simur_backend.Configurations
@@ -13,7 +14,7 @@ namespace simur_backend.Configurations
             TokenConfiguration tokenConfig = new();
             configuration.GetSection("AuthConfigurations").Bind(tokenConfig);
             string secret = Environment.GetEnvironmentVariable("JWT_SECRET");
-            if (string.IsNullOrEmpty(secret)) throw new ArgumentNullException("JWT server secret is missing");
+            if (string.IsNullOrEmpty(secret)) throw new InvalidEnvironmentSetupException("JWT server secret is missing");
             tokenConfig.Secret = secret;
 
             services.AddSingleton(tokenConfig);

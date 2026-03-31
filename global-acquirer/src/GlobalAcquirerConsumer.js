@@ -33,6 +33,7 @@ const broker = {
 }
 
 async function connectRabbitMq() {
+  console.log(`USERNAME: ${process.env.RABBITMQ_USERNAME} PASSWORD: ${process.env.RABBITMQ_PASSWORD}`)
   console.log('Connecting to broker')
   if(connection == null) {
     connection = await amqplib.connect(

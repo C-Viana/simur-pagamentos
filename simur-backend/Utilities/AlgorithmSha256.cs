@@ -1,5 +1,4 @@
-﻿using simur_backend.Auth.Contract;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace simur_backend.Utilities

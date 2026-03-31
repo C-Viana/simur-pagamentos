@@ -1,6 +1,7 @@
 ﻿using DnsClient.Internal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using simur_backend.Exceptions.CustomExceptions;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
 using simur_backend.Services.Payments;
@@ -30,7 +31,7 @@ namespace simur_backend.Controllers.V1
         {
             _logger.LogInformation("Payment of type {type} requested", payment.PaymentDetails.PaymentType.ToString());
             _logger.LogInformation("Payment requested from {customer} to {seller} from order {order}", payment.PayerDocument, payment.SellerDocument, payment.ExternalOrderId);
-            if (payment.PaymentDetails == null) throw new ArgumentNullException("Payment details are either missing or empty. Check the information and try again");
+            if (payment.PaymentDetails == null) throw new RequestInformationMissingException("Payment details are either missing or empty. Check the information and try again");
 
             PaymentDto savedPayment = await _service.CreateCompletePaymentAsync(payment, HttpContext);
             return CreatedAtAction(null, new { savedPayment.Id }, savedPayment);
