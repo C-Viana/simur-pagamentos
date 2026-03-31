@@ -9,16 +9,10 @@ namespace simur_backend.Models.Entities
         [BsonId]
         public Guid Id { get; init; } = Guid.NewGuid();
 
-        [Required]
-        [NotNull]
         public string FullName { get; set; }
 
-        [Required]
-        [NotNull]
-        [Length(11, 14)]
         public string Document { get; set; }
         
-        [EmailAddress]
         public string Email { get; set; }
 
         public string Phone { get; set; }

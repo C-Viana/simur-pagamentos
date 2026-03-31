@@ -1,5 +1,4 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using System.ComponentModel.DataAnnotations;
 
 namespace simur_backend.Models.Entities
 {
@@ -18,23 +17,11 @@ namespace simur_backend.Models.Entities
 
         [BsonId]
         public Guid Id { get; set; } = Guid.NewGuid();
-
-        [Required]
-        [Length(8,30)]
         public string Username { get; set; }
-
-        [Required]
-        [MinLength(8)]
         public string Password { get; set; }
-
-        [Length(5, 80)]
         public string FullName { get; set; }
-
-        [EmailAddress]
         public string Email { get; set; }
-
         public string RefreshToken { get; set; }
-
         public DateTime RefreshTokenExpiration {  get; set; }
 
 

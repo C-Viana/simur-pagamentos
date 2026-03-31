@@ -8,42 +8,14 @@ namespace simur_backend.Models.Entities
     {
         [BsonId]
         public Guid Id { get; init; } = Guid.NewGuid();
-
-        [Required]
-        [NotNull]
         public string Document { get; set; }
-
-        [Required]
-        [NotNull]
         public string TradeName { get; set; }
-
-        [Required]
-        [NotNull]
         public string CompanyName { get; set; }
-
-        [Required]
-        [EmailAddress]
-        [NotNull]
         public string Email { get; set; }
-
-        [Required]
-        [NotNull]
         public string PhoneNumber { get; set; }
-
-        [Required]
-        [NotNull]
         public Address Address { get; set; }
-
-        [Required]
-        [NotNull]
         public string PixKey { get; set; }
-
-        [Required]
-        [NotNull]
         public string MCC { get; set; } //Merchant Category Code: according ISO 18245
-
-        [Required]
-        [NotNull]
         public string BankAccountId { get; set; }
 
         public Merchant(string companyName, string tradeName, string document, string email, string phoneNumber, Address address, string pixKey, string mcc, string bankAccountId)
