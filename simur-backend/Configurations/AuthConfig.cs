@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using simur_backend.Auth.Config;
 using simur_backend.Exceptions.CustomExceptions;
+using System.Security.Claims;
 using System.Text;
 
 namespace simur_backend.Configurations
@@ -34,13 +35,15 @@ namespace simur_backend.Configurations
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = tokenConfig.Issuer,
                     ValidAudience = tokenConfig.Audience,
+                    RoleClaimType = ClaimTypes.Role,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenConfig.Secret))
                 };
             });
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                options
+                    .AddPolicy("Bearer", new AuthorizationPolicyBuilder()
                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
                     .Build()

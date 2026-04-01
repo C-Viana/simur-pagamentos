@@ -1,6 +1,5 @@
 ﻿using simur_backend.Hypermedia.Enrichers;
 using simur_backend.Hypermedia.Filters;
-using simur_backend.Models.DTO.V1;
 
 namespace simur_backend.Configurations
 {

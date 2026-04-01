@@ -33,7 +33,7 @@ namespace simur_backend.Services.Users
             _mapper = new UserConverter();
         }
 
-        public async Task<UserDto> CreateUserAsync(UserDto subscribingUser)
+        public async Task<UserResponseDto> CreateUserAsync(UserDto subscribingUser)
         {
             using IClientSessionHandle _sessionHandle = await _mongoClient.StartSessionAsync();
             _sessionHandle.StartTransaction();
@@ -53,7 +53,7 @@ namespace simur_backend.Services.Users
             }
         }
 
-        public async Task<UserDto> UpdateUserAsync(UserDto modifiedUser)
+        public async Task<UserResponseDto> UpdateUserAsync(UserDto modifiedUser)
         {
             using IClientSessionHandle _sessionHandle = await _mongoClient.StartSessionAsync();
             _sessionHandle.StartTransaction();
@@ -76,25 +76,25 @@ namespace simur_backend.Services.Users
             return _repository.UserExistsAsync(username, email);
         }
 
-        public async Task<UserDto> DeleteUserAsync(Guid id)
+        public async Task<UserResponseDto> DeleteUserAsync(Guid id)
         {
             User deletedUser = await _repository.DeleteAsync(id);
             return _mapper.Parse(deletedUser);
         }
 
-        public async Task<UserDto> FindUserByEmailAsync(string email)
+        public async Task<UserResponseDto> FindUserByEmailAsync(string email)
         {
             User foundUser = await _repository.FindByEmailAsync(email);
             return _mapper.Parse(foundUser);
         }
 
-        public async Task<UserDto> FindUserByIdAsync(Guid id)
+        public async Task<UserResponseDto> FindUserByIdAsync(Guid id)
         {
             User foundUser = await _repository.FindByIdAsync(id);
             return _mapper.Parse(foundUser);
         }
 
-        public async Task<UserDto> FindUserByUsernameAsync(string username)
+        public async Task<UserResponseDto> FindUserByUsernameAsync(string username)
         {
             User foundUser = await _repository.FindByUsernameAsync(username);
             return _mapper.Parse(foundUser);
@@ -137,18 +137,29 @@ namespace simur_backend.Services.Users
             ClaimsPrincipal principal = _tokenGenerator.GerPrincipalFromExpiredToken(token.AccessToken);
             string username = principal.Identity.Name;
             if (string.IsNullOrEmpty(username)) return null;
+
             var user = await _repository.FindByUsernameAsync(username);
             if( user == null || user.RefreshToken != token.RefreshToken || user.RefreshTokenExpiration < DateTime.Now) return null;
+
             UserTokenDto renewedToken = await GenerateTokenAsync(user, principal.Claims);
             return renewedToken;
         }
 
         private async Task<UserTokenDto> GenerateTokenAsync(User user, IEnumerable<Claim> userClaims)
         {
-            var claims = (userClaims is not null) ? userClaims.ToList() : [
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")), //Remove dashes from GUID
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username)
-            ];
+            var claims = new List<Claim>() {
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")), //Remove dashes from GUID
+                new(JwtRegisteredClaimNames.UniqueName, user.Username)
+            };
+
+            if(user.UserRoles != null && user.UserRoles.Count > 0)
+            {
+                foreach (var role in user.UserRoles)
+                {
+                    claims.Add(new (ClaimTypes.Role, role));
+                }
+            }
+
             var accessToken = _tokenGenerator.GenerateAccessToken(claims);
             var refreshToken = _tokenGenerator.GenerateRefreshToken();
 

@@ -23,7 +23,6 @@ namespace simur_backend.Models.Entities
         public string Email { get; set; }
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiration {  get; set; }
-
-
+        public List<string> UserRoles { get; set; }
     }
 }

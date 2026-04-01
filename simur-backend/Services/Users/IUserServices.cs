@@ -6,13 +6,13 @@ namespace simur_backend.Services.Users
 {
     public interface IUserServices
     {
-        Task<UserDto> CreateUserAsync(UserDto user);
+        Task<UserResponseDto> CreateUserAsync(UserDto user);
         bool UserExists(string username, string email);
-        Task<UserDto> FindUserByIdAsync(Guid id);
-        Task<UserDto> FindUserByUsernameAsync(string username);
-        Task<UserDto> FindUserByEmailAsync(string email);
-        Task<UserDto> UpdateUserAsync(UserDto updatedUser);
-        Task<UserDto> DeleteUserAsync(Guid id);
+        Task<UserResponseDto> FindUserByIdAsync(Guid id);
+        Task<UserResponseDto> FindUserByUsernameAsync(string username);
+        Task<UserResponseDto> FindUserByEmailAsync(string email);
+        Task<UserResponseDto> UpdateUserAsync(UserDto updatedUser);
+        Task<UserResponseDto> DeleteUserAsync(Guid id);
         // ----------------------------------------------------------------------------
         Task<bool> RevokeTokenAsync(string username);
         Task<UserTokenDto> AuthenticadeUserAsync(UserCredentialsDto user);

@@ -1,5 +1,6 @@
 using DotNetEnv;
 using Scalar.AspNetCore;
+using Serilog;
 using simur_backend.Auth;
 using simur_backend.Auth.Contract;
 using simur_backend.Configurations;
@@ -19,66 +20,90 @@ using simur_backend.Services.Payments;
 using simur_backend.Services.Users;
 using System.Text.Json;
 
-var builder = WebApplication.CreateBuilder(args);
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-Env.Load();
+    Env.Load();
 
-// Add services to the container.
-builder.Services.AddControllers(
-    options => options.Filters.Add<HypermediaFilter>()
-    )
-    .AddJsonOptions( options =>
+    builder.Services.AddHealthConfiguration();
+
+    //SET SERILOG LOGGER
+    builder.Host.UseSerilog((context, configuration) =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
-        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentBrand>());
-        options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentStatus>());
-        options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentType>());
+        configuration.ReadFrom.Configuration(context.Configuration);
     });
 
-builder.Services.AddOpenApi();
+    // Add services to the container.
+    builder.Services.AddControllers(
+        options => options.Filters.Add<HypermediaFilter>()
+        )
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+            options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentBrand>());
+            options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentStatus>());
+            options.JsonSerializerOptions.Converters.Add(new StringEnumSerializer<PaymentType>());
+        });
 
-builder.Services.AddDatabaseConfiguration(builder.Configuration);
+    builder.Services.AddOpenApi();
 
-builder.Services.AddAuthConfiguration(builder.Configuration);
-builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserServices, UserServices>();
+    builder.Services.AddDatabaseConfiguration(builder.Configuration);
 
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<ICustomerServices, CustomerServices>();
+    builder.Services.AddAuthConfiguration(builder.Configuration);
+    builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IUserServices, UserServices>();
 
-builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
-builder.Services.AddScoped<IMerchantServices, MerchantServices>();
+    builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+    builder.Services.AddScoped<ICustomerServices, CustomerServices>();
 
-builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
-builder.Services.AddScoped<IPaymentStatusHistoryRepository, PaymentStatusHistoryRepository>();
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IPaymentServices, PaymentServices>();
+    builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
+    builder.Services.AddScoped<IMerchantServices, MerchantServices>();
 
-builder.Services.AddScoped<IMessageBusService, RabbitMqPublisherService>(); //Creating service for RabbitMQ publisher
-builder.Services.AddHostedService<RabbitMqConsumerService>(); //Creating service for RabbitMQ consumer
+    builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+    builder.Services.AddScoped<IPaymentStatusHistoryRepository, PaymentStatusHistoryRepository>();
+    builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+    builder.Services.AddScoped<IPaymentServices, PaymentServices>();
 
-builder.Services.AddHateoasConfiguration();
+    builder.Services.AddScoped<RabbitMqSetupService>();
+    builder.Services.AddScoped<IMessageBusService, RabbitMqPublisherService>(); //Creating service for RabbitMQ publisher
+    builder.Services.AddHostedService<RabbitMqConsumerService>(); //Creating service for RabbitMQ consumer
 
-var app = builder.Build();
+    builder.Services.AddHateoasConfiguration();
 
-app.UseMiddleware<SimurExceptionHandler>();
+    var app = builder.Build();
+    app.UseSerilogRequestLogging();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-    app.Map("/", () => Results.Redirect("/scalar"));
+    app.UseMiddleware<SimurExceptionHandler>();
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi().AllowAnonymous();
+        app.MapScalarApiReference().AllowAnonymous();
+        app.Map("/", () => Results.Redirect("/scalar")).AllowAnonymous();
+    }
+
+    app.MapControllers();
+    app.UseHateoasRoutes();
+
+    app.StartHealthchecks();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-app.UseHateoasRoutes();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated due unexpected error");
+}
+finally
+{
+    Log.Information("Application has been closed");
+    Log.CloseAndFlush();
+}

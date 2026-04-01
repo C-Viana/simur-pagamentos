@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using simur_backend.Auth;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Services.Users;
 
@@ -18,11 +19,27 @@ namespace simur_backend.Controllers.Authorization
             _logger = logger;
         }
 
-        [HttpPost("create", Name = "CreateUser")]
-        [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpGet("user/{username}", Name = "FindUserByUsername")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [AllowAnonymous]
+        [Authorize(Roles = $"{Roles.ADMIN},{Roles.MANAGER}")]
+        public async Task<IActionResult> FindUserByUsername([FromRoute] string username)
+        {
+            _logger.LogInformation("Fetching user by username {username}", username);
+            var result = await _service.FindUserByUsernameAsync(username);
+            if (result == null) return NotFound($"No user found with username {username}");
+            return Ok(result);
+        }
+
+        [HttpPost("create", Name = "CreateUser")]
+        [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles = Roles.ADMIN)]
         public async Task<IActionResult> CreateUser([FromBody] UserDto subscribingUser)
         {
             _logger.LogInformation("User creation request for {username}", subscribingUser.Username);
@@ -31,7 +48,7 @@ namespace simur_backend.Controllers.Authorization
             if (_service.UserExists(subscribingUser.Username, subscribingUser.Email))
                 return BadRequest("Username and/or e-mail already in use");
 
-            UserDto createdUser = await _service.CreateUserAsync(subscribingUser);
+            UserResponseDto createdUser = await _service.CreateUserAsync(subscribingUser);
             return CreatedAtAction(null, new { createdUser.Id }, createdUser);
         }
 

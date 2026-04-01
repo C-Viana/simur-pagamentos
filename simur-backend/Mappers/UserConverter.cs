@@ -4,7 +4,7 @@ using simur_backend.Models.Entities;
 
 namespace simur_backend.Mappers
 {
-    public class UserConverter : IParser<UserDto, User>, IParser<User, UserDto>
+    public class UserConverter : IParser<UserDto, User>, IParser<User, UserResponseDto>
     {
         public User Parse(UserDto dto)
         {
@@ -19,17 +19,28 @@ namespace simur_backend.Mappers
             );
         }
 
-        public UserDto Parse(User origin)
+        //public UserDto Parse(User origin)
+        //{
+        //    return new UserDto()
+        //    {
+        //        Id = origin.Id,
+        //        Username = origin.Username,
+        //        Password = origin.Password,
+        //        FullName = origin.FullName,
+        //        Email = origin.Email,
+        //        RefreshToken = origin.RefreshToken,
+        //        RefreshTokenExpiration = origin.RefreshTokenExpiration
+        //    };
+        //}
+
+        public UserResponseDto Parse(User origin)
         {
-            return new UserDto()
+            return new UserResponseDto()
             {
                 Id = origin.Id,
                 Username = origin.Username,
-                Password = origin.Password,
                 FullName = origin.FullName,
-                Email = origin.Email,
-                RefreshToken = origin.RefreshToken,
-                RefreshTokenExpiration = origin.RefreshTokenExpiration
+                Email = origin.Email
             };
         }
 
@@ -38,7 +49,12 @@ namespace simur_backend.Mappers
             return [.. origin.Select(Parse)];
         }
 
-        public List<UserDto> ParseList(List<User> origin)
+        //public List<UserDto> ParseList(List<User> origin)
+        //{
+        //    return [.. origin.Select(Parse)];
+        //}
+
+        public List<UserResponseDto> ParseList(List<User> origin)
         {
             return [.. origin.Select(Parse)];
         }

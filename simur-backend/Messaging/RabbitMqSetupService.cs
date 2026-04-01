@@ -141,5 +141,10 @@ namespace simur_backend.Messaging
                 await _connection.DisposeAsync();
             }
         }
+
+        public static IConnection GetConnection()
+        {
+            return _connection;
+        }
     }
 }
