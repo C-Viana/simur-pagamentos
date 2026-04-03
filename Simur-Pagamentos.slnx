@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="simur-backend-tests/simur-backend-tests.csproj" Id="80cfc2c3-e1d3-42d6-bf51-341a5b56be63" />
   <Project Path="simur-backend/simur-backend.csproj" />
 </Solution>

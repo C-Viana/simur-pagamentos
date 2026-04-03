@@ -23,7 +23,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FindMerchantByDocument(string document)
+        public async Task<IActionResult> FindMerchantByDocument([FromRoute] string document)
         {
             _logger.LogInformation("Fetching for merchant document {document}", document);
             MerchantDto FoundEntity = await _merchantService.FindMerchantByDocumentAsync(document);
@@ -40,7 +40,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FindMerchantById(string id)
+        public async Task<IActionResult> FindMerchantById([FromRoute] string id)
         {
             _logger.LogInformation("No merchant found with document {id}", id);
             MerchantDto FoundEntity = await _merchantService.FindMerchantByIdAsync(id);
@@ -56,6 +56,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateMerchant([FromBody] MerchantDto merchant)
         {
             _logger.LogInformation("Creating a new merchant with document {document}", merchant.Document);
@@ -66,7 +67,8 @@ namespace simur_backend.Controllers.V1
             }
             MerchantDto entity = await _merchantService.CreateMerchantAsync(merchant);
             _logger.LogInformation("Merchant with document {document} successfully created", entity.Document);
-            return Created(nameof(CreateMerchant), entity);
+
+            return CreatedAtAction(nameof(FindMerchantById), new { id = entity.Id  }, entity);
         }
 
         [HttpPut(Name = "UpdateMerchant")]
@@ -96,7 +98,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(MerchantDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteMerchantByDocument(string document)
+        public async Task<IActionResult> DeleteMerchantByDocument([FromRoute] string document)
         {
             _logger.LogInformation("Deletion required for merchant with document {document}", document);
             bool isDeleted = await _merchantService.DeleteMerchantByDocumentAsync(document);

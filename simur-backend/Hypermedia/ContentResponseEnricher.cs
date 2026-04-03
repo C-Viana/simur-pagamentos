@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Routing;
-using System.Runtime.CompilerServices;
+using Polly;
+using simur_backend.Hypermedia.Utils;
 
 namespace simur_backend.Hypermedia
 {
@@ -10,17 +11,19 @@ namespace simur_backend.Hypermedia
 
         protected abstract Task EnrichModel(T content, IUrlHelper urlHelper);
 
-        public async Task Enrich(ResultExecutingContext response)
+        public async Task Enrich(ResultExecutingContext context)
         {
-            var urlHelper = new UrlHelperFactory().GetUrlHelper(response);
-            if (response.Result is OkObjectResult okObjectResult)
+            var urlHelper = new UrlHelperFactory().GetUrlHelper(context);
+
+            if (HypermediaDesiredValues.IsHypermediaExpected(context))
             {
-                if(okObjectResult.Value is T model)
+                var objectResult = HypermediaDesiredValues.GetTypeFromResult(context);
+                if (objectResult.Value is T model)
                 {
                     await EnrichModel(model, urlHelper);
                     return;
                 }
-                else if(okObjectResult.Value is List<T> collection)
+                else if(objectResult.Value is List<T> collection)
                 {
                     foreach (var item in collection)
                     {
@@ -37,12 +40,13 @@ namespace simur_backend.Hypermedia
             return contentType == typeof(T) || contentType == typeof(List<T>);
         }
 
-        bool IResponseEnricher.CanEnrich(ResultExecutingContext response)
+        bool IResponseEnricher.CanEnrich(ResultExecutingContext context)
         {
-            if(response.Result is OkObjectResult okObjectResult)
+            if(HypermediaDesiredValues.IsHypermediaExpected(context))
             {
-                if (okObjectResult.Value is null) return false;
-                return CanEnrich(okObjectResult.Value.GetType());
+                var objectResult = HypermediaDesiredValues.GetTypeFromResult(context);
+                if (objectResult.Value is null) return false;
+                return CanEnrich(objectResult.Value.GetType());
             }
             return false;
         }

@@ -144,7 +144,7 @@ namespace simur_backend.Services.Payments
             try
             {
                 Payment PaymentFound = await _paymentRepository.FindByIdAsync(sessionHandler, paymentStatus.PaymentId);
-                if (PaymentFound == null) throw new PaymentCreationErrorException($"No payment was found with ID {paymentStatus.PaymentId}");
+                if (PaymentFound == null) throw new PaymentNotFoundException($"No payment was found with ID {paymentStatus.PaymentId}");
 
                 paymentStatus.ChangedAt = DateTimeOffset.Now.DateTime;
                 PaymentStatusHistory NewStatus = await _statusHistoryRepository.CreateHistoryInfoAsync(sessionHandler, paymentStatus);
@@ -219,7 +219,7 @@ namespace simur_backend.Services.Payments
             _sessionHandle.StartTransaction();
             try{
                 Payment PaymentFound = await _paymentRepository.FindByIdAsync(payment.Id);
-                if (PaymentFound == null) throw new PaymentCreationErrorException($"No payment was found with ID {payment.Id}");
+                if (PaymentFound == null) throw new PaymentNotFoundException($"No payment was found with ID {payment.Id}");
                 Payment PaymentUpdated = await _paymentRepository.UpdateAsync(_sessionHandle, _mapper.Parse(payment));
                 await _sessionHandle.CommitTransactionAsync();
                 return _mapper.Parse(PaymentUpdated);

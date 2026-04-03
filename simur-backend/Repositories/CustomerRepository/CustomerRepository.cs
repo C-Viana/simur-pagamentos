@@ -32,8 +32,11 @@ namespace simur_backend.Repositories.CustomerRepository
         public async Task<Customer> UpdateCustomerAsync(Customer customer)
         {
             FilterDefinition<Customer> filter = Builders<Customer>.Filter.Eq(entity => entity.Id, customer.Id);
-            await _customers.ReplaceOneAsync(filter, customer);
-            return await _customers.Find(entity => entity.Id == customer.Id).FirstOrDefaultAsync();
+            FindOneAndReplaceOptions<Customer> options = new()
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+            return await _customers.FindOneAndReplaceAsync(filter, customer, options);
         }
 
         public async Task<bool> DeleteCustomerAsync(string document)

@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
+using static System.Net.WebRequestMethods;
 
 namespace simur_backend.Repositories.MerchantRepository
 {
@@ -39,8 +40,11 @@ namespace simur_backend.Repositories.MerchantRepository
         public async Task<Merchant> UpdateMerchantAsync(Merchant merchant)
         {
             FilterDefinition<Merchant> filterDefinition = Builders<Merchant>.Filter.Eq(entity => entity.Id, merchant.Id);
-            await _merchants.ReplaceOneAsync(filterDefinition, merchant);
-            return await _merchants.Find(filterDefinition).FirstOrDefaultAsync();
+            FindOneAndReplaceOptions<Merchant> options = new()
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+            return await _merchants.FindOneAndReplaceAsync(filterDefinition, merchant, options);
         }
     }
 }

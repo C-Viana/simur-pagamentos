@@ -26,7 +26,7 @@ namespace simur_backend.Models.DTO.V1
         [RegularExpression("^\\d{10,11}$")]
         public string Phone { get; set; }
 
-        [RegularExpression("^\\d{4}-\\d{2}-\\d{2}$")]
+        [BsonDateOnlyOptions(MongoDB.Bson.BsonType.String)]
         public DateOnly Birthdate { get; set; }
 
         public Address Address { get; set; }

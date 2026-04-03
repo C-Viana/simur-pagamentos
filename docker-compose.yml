@@ -40,8 +40,8 @@ services:
             retries: 5
             start_period: 40s
     
-    glogal-acquirer:
-        container_name: glogal-acquirer
+    global-acquirer:
+        container_name: global-acquirer
         image: node:20
         ports:
             - 3000:3000

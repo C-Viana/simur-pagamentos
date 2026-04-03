@@ -21,7 +21,7 @@ namespace simur_backend.Exceptions
                 InvalidOperationException => (409, ex.Message ?? "Invalid operation"),
                 KeyNotFoundException => (404, ex.Message ?? "Resource not found"),
                 SerializationException => (500, ex.Message ?? "Failed to serialize/deserialize value"),
-                PaymentCreationErrorException => (404, ex.Message ?? "No payment(s) found"),
+                PaymentNotFoundException => (404, ex.Message ?? "No payment(s) found"),
                 _ => (500, ex.Message ?? "Internal server error")
             };
         }

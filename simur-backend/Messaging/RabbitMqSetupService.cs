@@ -27,7 +27,7 @@ namespace simur_backend.Messaging
         private static string _dlqRoutingKey;
         private static string _dlqQueue;
 
-        private static List<string> _returnedMsgs = new List<string>();
+        private static List<string> _returnedMsgs = [];
 
         private static void StartLogger()
         {

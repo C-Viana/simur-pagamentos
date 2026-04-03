@@ -3,7 +3,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using simur_backend.Models.Constants;
 using simur_backend.Models.Entities.Payments;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
 namespace simur_backend.Models.Entities

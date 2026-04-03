@@ -2,9 +2,9 @@
 
 namespace simur_backend.Exceptions.CustomExceptions
 {
-    public class PaymentNotFoundException : Exception
+    public class PaymentCreationException : Exception
     {
         public HttpStatusCode StatusCode { get; } = HttpStatusCode.InternalServerError;
-        public PaymentNotFoundException(string message) : base(message) { }
+        public PaymentCreationException(string message) : base(message) { }
     }
 }

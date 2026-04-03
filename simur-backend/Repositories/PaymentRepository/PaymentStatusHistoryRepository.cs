@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
+using static System.Collections.Specialized.BitVector32;
 
 namespace simur_backend.Repositories.PaymentRepository
 {
@@ -49,8 +50,11 @@ namespace simur_backend.Repositories.PaymentRepository
         public async Task<PaymentStatusHistory> UpdateHistoryInfoAsync(PaymentStatusHistory paymentUpdate)
         {
             FilterDefinition<PaymentStatusHistory> filter = Builders<PaymentStatusHistory>.Filter.Eq(entity => entity.Id, paymentUpdate.Id);
-            await _collection.ReplaceOneAsync(filter, paymentUpdate);
-            return _collection.Find(filter).FirstOrDefault();
+            FindOneAndReplaceOptions<PaymentStatusHistory> options = new()
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+            return await _collection.FindOneAndReplaceAsync(filter, paymentUpdate, options);
         }
     }
 }

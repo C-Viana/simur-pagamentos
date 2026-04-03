@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using simur_backend.Hypermedia.Utils;
 
 namespace simur_backend.Hypermedia.Filters
 {
@@ -15,7 +16,7 @@ namespace simur_backend.Hypermedia.Filters
 
         private void TryEnrichResult(ResultExecutingContext context)
         {
-            if(context.Result is OkObjectResult objectResult)
+            if (HypermediaDesiredValues.IsHypermediaExpected(context))
             {
                 var enricher = _hypermediaFilterOptions.ContentResponseEnricherList.FirstOrDefault(option => option.CanEnrich(context));
                 if (enricher is null) return;

@@ -24,7 +24,7 @@ public class CustomerController : ControllerBase
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> FindCustomerByDocument(string document)
+    public async Task<IActionResult> FindCustomerByDocument([FromRoute] string document)
     {
         _logger.LogInformation("Fetching for customer document {document}", document);
         CustomerDto FoundEntity = await _customerService.FindCustomerByDocumentAsync(document);
@@ -40,7 +40,7 @@ public class CustomerController : ControllerBase
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> FindCustomerById(string id)
+    public async Task<IActionResult> FindCustomerById([FromRoute] string id)
     {
         _logger.LogInformation("No customer found with document {id}", id);
         CustomerDto FoundEntity = await _customerService.FindCustomerByIdAsync(id);
@@ -56,6 +56,7 @@ public class CustomerController : ControllerBase
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateCustomer([FromBody] CustomerDto customer)
     {
         _logger.LogInformation("Creating a new customer with document {document}", customer.Document);
@@ -66,7 +67,8 @@ public class CustomerController : ControllerBase
         }
         CustomerDto entity = await _customerService.CreateCustomerAsync(customer);
         _logger.LogInformation("Customer with document {document} successfully created", entity.Document);
-        return Created(nameof(CreateCustomer), entity);
+
+        return CreatedAtAction(nameof(FindCustomerById), new { id = entity.Id }, entity);
     }
 
     [HttpPut(Name = "UpdateCustomer")]
@@ -96,7 +98,7 @@ public class CustomerController : ControllerBase
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteCustomerByDocument(string document)
+    public async Task<IActionResult> DeleteCustomerByDocument([FromRoute] string document)
     {
         _logger.LogInformation("Deletion required for customer with document {document}", document);
         bool isDeleted = await _customerService.DeleteCustomerByDocumentAsync(document);

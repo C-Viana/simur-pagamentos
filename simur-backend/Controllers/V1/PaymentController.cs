@@ -41,12 +41,12 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FindPaymentById([FromRoute] string paymentId)
+        public async Task<IActionResult> FindPaymentById([FromRoute] Guid paymentId)
         {
-            _logger.LogInformation("Fetching payment by internal ID {id}", paymentId);
-            PaymentDto foundPayment = await _service.FindByIdAsync(Guid.Parse(paymentId));
-            if(foundPayment == null) return NotFound($"No payment found for ID {paymentId}");
-            PaymentMethod foundMethod = await _service.FindDetailsByPaymentIdAsync(Guid.Parse(paymentId));
+            _logger.LogInformation("Fetching payment by internal ID {id}", paymentId.ToString());
+            PaymentDto foundPayment = await _service.FindByIdAsync(paymentId);
+            if(foundPayment == null) return NotFound($"No payment found for ID {paymentId.ToString()}");
+            PaymentMethod foundMethod = await _service.FindDetailsByPaymentIdAsync(paymentId);
             foundPayment.PaymentDetails = foundMethod.PaymentDetails;
 
             return Ok(foundPayment);
@@ -80,7 +80,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FindPaymentByCustomerDocument(string customerDoc)
+        public async Task<IActionResult> FindPaymentByCustomerDocument([FromRoute] string customerDoc)
         {
             _logger.LogInformation("Fetching payments created at {id}", customerDoc);
             List<PaymentDto> foundPayments = await _service.FindByCustomerDocAsync(customerDoc);
@@ -99,7 +99,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FindPaymentByMerchantDoc(string merchantDoc)
+        public async Task<IActionResult> FindPaymentByMerchantDoc([FromRoute] string merchantDoc)
         {
             _logger.LogInformation("Fetching payments created at {id}", merchantDoc);
             List<PaymentDto> foundPayments = await _service.FindByMerchantDocAsync(merchantDoc);
@@ -118,7 +118,7 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FindPaymentByExternalOrderId(string externalOrderId)
+        public async Task<IActionResult> FindPaymentByExternalOrderId([FromRoute] string externalOrderId)
         {
             _logger.LogInformation("Fetching payment by order ID {id}", externalOrderId);
             PaymentDto foundPayment = await _service.FindByExternalOrderIdAsync(externalOrderId);
@@ -135,11 +135,10 @@ namespace simur_backend.Controllers.V1
         public async Task<IActionResult> UpdatePaymentStatus([FromBody] PaymentStatusHistory paymentStatus)
         {
             _logger.LogInformation("Updating payment with ID {id}", paymentStatus.PaymentId);
-            await _service.UpdatePaymentStatusAsync(paymentStatus);
-
-            PaymentDto updatedPayment = await _service.FindByIdAsync(paymentStatus.PaymentId);
+            PaymentDto updatedPayment = await _service.UpdatePaymentStatusAsync(paymentStatus);
             if (updatedPayment == null) return BadRequest($"Update not executed. No payment found with ID {paymentStatus.PaymentId}");
 
+            //PaymentDto updatedPayment = await _service.FindByIdAsync(paymentStatus.PaymentId);
             PaymentMethod foundMethod = await _service.FindDetailsByPaymentIdAsync(paymentStatus.PaymentId);
             updatedPayment.PaymentDetails = foundMethod.PaymentDetails;
             return Ok(updatedPayment);
@@ -149,12 +148,12 @@ namespace simur_backend.Controllers.V1
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeletePaymentById([FromRoute] string paymentId)
+        public async Task<IActionResult> DeletePaymentById([FromRoute] Guid paymentId)
         {
-            _logger.LogInformation("Deleting payment with ID {id}", paymentId);
-            PaymentDto updatedPayment = await _service.DeleteAsync(Guid.Parse(paymentId));
-            if (updatedPayment == null) _logger.LogInformation("Deletion not executed. No payment found with ID {paymentId}", paymentId);
-            else _logger.LogInformation("Payment with ID {paymentId} successfully deleted", paymentId);
+            _logger.LogInformation("Deleting payment with ID {id}", paymentId.ToString());
+            PaymentDto updatedPayment = await _service.DeleteAsync(paymentId);
+            if (updatedPayment == null) _logger.LogInformation("Deletion not executed. No payment found with ID {paymentId}", paymentId.ToString());
+            else _logger.LogInformation("Payment with ID {paymentId} successfully deleted", paymentId.ToString());
             return NoContent();
         }
     }

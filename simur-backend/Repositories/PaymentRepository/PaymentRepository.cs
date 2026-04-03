@@ -76,8 +76,11 @@ namespace simur_backend.Repositories.PaymentRepository
         public async Task<Payment> UpdateAsync(IClientSessionHandle session, Payment payment)
         {
             FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.Id, payment.Id);
-            await _collection.ReplaceOneAsync(session, filter, payment);
-            return await _collection.Find(filter).FirstOrDefaultAsync();
+            FindOneAndReplaceOptions<Payment> options = new()
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+            return await _collection.FindOneAndReplaceAsync(session, filter, payment, options);
         }
     }
 }
