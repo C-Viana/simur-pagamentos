@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
+using simur_backend.Models.Pagination;
 
 namespace simur_backend.Repositories.PaymentRepository
 {
@@ -26,8 +27,6 @@ namespace simur_backend.Repositories.PaymentRepository
 
         public async Task<List<Payment>> FindByCreatedAtAsync(DateOnly createdAt)
         {
-            //{ CreatedAt: {$gte: new Date("2026-03-07"), $lt: new Date("2026-03-08")} }
-            //CreatedAt : 2026-03-07T13:45:56.130+00:00
             DateTimeOffset TargetDate = new(createdAt, TimeOnly.MinValue, TimeSpan.Zero);
             DateTimeOffset LimitDate = TargetDate.AddDays(1);
 
@@ -40,11 +39,77 @@ namespace simur_backend.Repositories.PaymentRepository
             return results;
         }
 
+        public async Task<PagedResponse<Payment>> FindByCreatedAtAsync(DateOnly createdAt, int pageNumber, int pageSize, string sortDirection)
+        {
+            DateTimeOffset TargetDate = new(createdAt, TimeOnly.MinValue, TimeSpan.Zero);
+            DateTimeOffset LimitDate = TargetDate.AddDays(1);
+
+            FilterDefinition<Payment> filter =
+                Builders<Payment>.Filter.Gte(entity => entity.CreatedAt, TargetDate)
+                &
+                Builders<Payment>.Filter.Lt(entity => entity.CreatedAt, LimitDate);
+
+            long count = await _collection.CountDocumentsAsync(filter);
+            SortDefinition<Payment> sort = (sortDirection.StartsWith("desc", StringComparison.InvariantCultureIgnoreCase))
+                ? Builders<Payment>.Sort.Descending(p => p.CreatedAt)
+                : Builders<Payment>.Sort.Ascending(p => p.CreatedAt);
+
+            List<Payment> results = await _collection.Find(filter)
+                .Sort(sort)
+                .Skip((pageNumber - 1) * pageSize) // Pular páginas anteriores
+                .Limit(pageSize) // Limitar itens da página atual
+                .ToListAsync();
+
+            return new PagedResponse<Payment>(results, (int)count, pageNumber, pageSize);
+        }
+
         public async Task<List<Payment>> FindByCustomerDocAsync(string customerDoc)
         {
             FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.CustomerDocument, customerDoc);
             List<Payment> results = await _collection.Find(filter).ToListAsync();
             return results;
+        }
+
+        public async Task<PagedResponse<Payment>> FindByCustomerDocAsync(string customerDoc, int pageNumber, int pageSize, string sortDirection)
+        {
+            FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.CustomerDocument, customerDoc);
+
+            long count = await _collection.CountDocumentsAsync(filter);
+            SortDefinition<Payment> sort = (sortDirection.StartsWith("desc", StringComparison.InvariantCultureIgnoreCase))
+                ? Builders<Payment>.Sort.Descending(p => p.CreatedAt)
+                : Builders<Payment>.Sort.Ascending(p => p.CreatedAt);
+
+            List<Payment> results = await _collection.Find(filter)
+                .Sort(sort)
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+
+            return new PagedResponse<Payment>(results, (int)count, pageNumber, pageSize);
+        }
+
+        public async Task<List<Payment>> FindByMerchantDocAsync(string merchantDoc)
+        {
+            FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.MerchantDocument, merchantDoc);
+            List<Payment> results = await _collection.Find(filter).ToListAsync();
+            return results;
+        }
+
+        public async Task<PagedResponse<Payment>> FindByMerchantDocAsync(string merchantDoc, int pageNumber, int pageSize, string sortDirection)
+        {
+            FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.MerchantDocument, merchantDoc);
+            long count = await _collection.CountDocumentsAsync(filter);
+            SortDefinition<Payment> sort = (sortDirection.StartsWith("desc", StringComparison.InvariantCultureIgnoreCase))
+                ? Builders<Payment>.Sort.Descending(p => p.CreatedAt)
+                : Builders<Payment>.Sort.Ascending(p => p.CreatedAt);
+
+            List<Payment> results = await _collection.Find(filter)
+                .Sort(sort)
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+
+            return new PagedResponse<Payment>(results, (int)count, pageNumber, pageSize);
         }
 
         public async Task<Payment> FindByExternalOrderIdAsync(string externalId)
@@ -64,13 +129,6 @@ namespace simur_backend.Repositories.PaymentRepository
         {
             FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.Id, id);
             return await _collection.Find(filter).FirstOrDefaultAsync();
-        }
-
-        public async Task<List<Payment>> FindByMerchantDocAsync(string merchantDoc)
-        {
-            FilterDefinition<Payment> filter = Builders<Payment>.Filter.Eq(entity => entity.MerchantDocument, merchantDoc);
-            List<Payment> results = await _collection.Find(filter).ToListAsync();
-            return results;
         }
 
         public async Task<Payment> UpdateAsync(IClientSessionHandle session, Payment payment)

@@ -1,5 +1,6 @@
 ﻿using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
+using simur_backend.Models.Pagination;
 
 namespace simur_backend.Services.Payments
 {
@@ -14,6 +15,9 @@ namespace simur_backend.Services.Payments
         Task<List<PaymentDto>> FindByMerchantDocAsync(string merchantId);
         Task<List<PaymentDto>> FindByCustomerDocAsync(string CustomerId);
         Task<List<PaymentDto>> FindByCreatedAtAsync(DateOnly paymentDate);
+        Task<PagedResponse<PaymentDto>> FindByMerchantDocAsync(string merchantId, int pageNumber, int pageSize, string sortDirection);
+        Task<PagedResponse<PaymentDto>> FindByCustomerDocAsync(string CustomerId, int pageNumber, int pageSize, string sortDirection);
+        Task<PagedResponse<PaymentDto>> FindByCreatedAtAsync(DateOnly paymentDate, int pageNumber, int pageSize, string sortDirection);
 
         Task<PaymentMethod> FindDetailsByIdAsync(Guid id);
         Task<PaymentMethod> FindDetailsByPaymentIdAsync(Guid PaymentId);

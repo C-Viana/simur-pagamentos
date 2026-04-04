@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using simur_backend.Exceptions.CustomExceptions;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
+using simur_backend.Models.Pagination;
 using simur_backend.Services.Payments;
 
 namespace simur_backend.Controllers.V1
@@ -55,6 +56,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("date/{paymentDate}", Name = "FindByPaymentByDate")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindByPaymentByDate(DateOnly paymentDate)
         {
@@ -65,7 +67,7 @@ namespace simur_backend.Controllers.V1
             if (foundPayments.Count < 1)
             {
                 _logger.LogInformation("No payments found at {paymentDate}", paymentDate.ToString());
-                return Ok($"No payments were created at {paymentDate.ToString()}");
+                return NotFound($"No payments were created at {paymentDate.ToString()}");
             }
             foreach (var item in foundPayments)
             {
@@ -76,9 +78,35 @@ namespace simur_backend.Controllers.V1
             return Ok(foundPayments);
         }
 
+        [HttpGet("date/{paymentDate}/pagination", Name = "PagedFindByPaymentByDate")]
+        [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PagedResponse<PaymentDto>>> PagedFindByPaymentByDate([FromRoute] DateOnly paymentDate, [FromQuery] PaginationParams pageParams)
+        {
+            _logger.LogInformation("Fetching payments created at {paymentDate}", paymentDate.ToString());
+
+            PagedResponse<PaymentDto> foundPayments = await _service.FindByCreatedAtAsync(paymentDate, pageParams.Page, pageParams.PageSize, pageParams.Sort);
+
+            if (foundPayments.Items.Count < 1)
+            {
+                _logger.LogInformation("No payments found at {paymentDate}", paymentDate.ToString());
+                return Ok($"No payments were created at {paymentDate.ToString()}");
+            }
+            foreach (var item in foundPayments.Items)
+            {
+                PaymentMethod detail = await _service.FindDetailsByPaymentIdAsync(item.Id);
+                item.PaymentDetails = detail.PaymentDetails;
+            }
+            _logger.LogInformation("A total of {count} payments found created at {paymentDate}", foundPayments.TotalCount, paymentDate.ToString());
+            return Ok(foundPayments);
+        }
+
         [HttpGet("customer/{customerDoc}", Name = "FindPaymentByCustomerDocument")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindPaymentByCustomerDocument([FromRoute] string customerDoc)
         {
@@ -95,17 +123,58 @@ namespace simur_backend.Controllers.V1
             return Ok(foundPayments);
         }
 
-        [HttpGet("merchant/{merchantDoc}", Name = "FindPaymentByMerchantDoc")]
-        [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
+        [HttpGet("customer/{customerDoc}/pagination", Name = "PagedFindPaymentByCustomerDocument")]
+        [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PagedResponse<PaymentDto>>> PagedFindPaymentByCustomerDocument([FromRoute] string customerDoc, [FromQuery] PaginationParams pageParams)
+        {
+            _logger.LogInformation("Fetching payments created at {id}", customerDoc);
+            PagedResponse<PaymentDto> foundPayments = await _service.FindByCustomerDocAsync(customerDoc, pageParams.Page, pageParams.PageSize, pageParams.Sort);
+
+            if (foundPayments.Items.Count < 1) return NotFound($"No payments found for customer {customerDoc}");
+            foreach (var item in foundPayments.Items)
+            {
+                PaymentMethod detail = await _service.FindDetailsByPaymentIdAsync(item.Id);
+                item.PaymentDetails = detail.PaymentDetails;
+            }
+
+            return Ok(foundPayments);
+        }
+
+        [HttpGet("merchant/{merchantDoc}", Name = "FindPaymentByMerchantDoc")]
+        [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindPaymentByMerchantDoc([FromRoute] string merchantDoc)
         {
             _logger.LogInformation("Fetching payments created at {id}", merchantDoc);
             List<PaymentDto> foundPayments = await _service.FindByMerchantDocAsync(merchantDoc);
 
-            if (foundPayments.Count < 1) return NotFound($"No payments found for customer {merchantDoc}");
+            if (foundPayments.Count < 1) return NotFound($"No payments found for merchant {merchantDoc}");
             foreach (var item in foundPayments)
+            {
+                PaymentMethod detail = await _service.FindDetailsByPaymentIdAsync(item.Id);
+                item.PaymentDetails = detail.PaymentDetails;
+            }
+
+            return Ok(foundPayments);
+        }
+
+        [HttpGet("merchant/{merchantDoc}/pagination", Name = "PagedFindPaymentByMerchantDoc")]
+        [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<PagedResponse<PaymentDto>>> PagedFindPaymentByMerchantDoc([FromRoute] string merchantDoc, [FromQuery] PaginationParams pageParams)
+        {
+            _logger.LogInformation("Fetching payments created at {id}", merchantDoc);
+            PagedResponse<PaymentDto> foundPayments = await _service.FindByMerchantDocAsync(merchantDoc, pageParams.Page, pageParams.PageSize, pageParams.Sort);
+
+            if (foundPayments.Items.Count < 1) return NotFound($"No payments found for merchant {merchantDoc}");
+            foreach (var item in foundPayments.Items)
             {
                 PaymentMethod detail = await _service.FindDetailsByPaymentIdAsync(item.Id);
                 item.PaymentDetails = detail.PaymentDetails;

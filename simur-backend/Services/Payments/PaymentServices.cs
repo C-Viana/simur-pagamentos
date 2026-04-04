@@ -6,6 +6,7 @@ using simur_backend.Models.Constants;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
 using simur_backend.Models.Entities.Payments;
+using simur_backend.Models.Pagination;
 using simur_backend.Repositories.PaymentRepository;
 
 namespace simur_backend.Services.Payments
@@ -119,6 +120,33 @@ namespace simur_backend.Services.Payments
             return _mapper.ParseList(PaymentsFound);
         }
 
+        public async Task<List<PaymentDto>> FindByMerchantDocAsync(string merchantDoc)
+        {
+            List<Payment> PaymentsFound = await _paymentRepository.FindByMerchantDocAsync(merchantDoc);
+            return _mapper.ParseList(PaymentsFound);
+        }
+
+        public async Task<PagedResponse<PaymentDto>> FindByCreatedAtAsync(DateOnly paymentDate, int pageNumber, int pageSize, string sortDirection)
+        {
+            PagedResponse<Payment> PaymentsFound = await _paymentRepository.FindByCreatedAtAsync(paymentDate, pageNumber, pageSize, sortDirection);
+            PagedResponse<PaymentDto> response = new PagedResponse<PaymentDto>(_mapper.ParseList(PaymentsFound.Items), PaymentsFound.TotalCount, PaymentsFound.CurrentPage, PaymentsFound.PageSize);
+            return response;
+        }
+
+        public async Task<PagedResponse<PaymentDto>> FindByCustomerDocAsync(string CustomerDoc, int pageNumber, int pageSize, string sortDirection)
+        {
+            PagedResponse<Payment> PaymentsFound = await _paymentRepository.FindByCustomerDocAsync(CustomerDoc, pageNumber, pageSize, sortDirection);
+            PagedResponse<PaymentDto> response = new PagedResponse<PaymentDto>(_mapper.ParseList(PaymentsFound.Items), PaymentsFound.TotalCount, PaymentsFound.CurrentPage, PaymentsFound.PageSize);
+            return response;
+        }
+
+        public async Task<PagedResponse<PaymentDto>> FindByMerchantDocAsync(string merchantDoc, int pageNumber, int pageSize, string sortDirection)
+        {
+            PagedResponse<Payment> PaymentsFound = await _paymentRepository.FindByMerchantDocAsync(merchantDoc, pageNumber, pageSize, sortDirection);
+            PagedResponse<PaymentDto> response = new PagedResponse<PaymentDto>(_mapper.ParseList(PaymentsFound.Items), PaymentsFound.TotalCount, PaymentsFound.CurrentPage, PaymentsFound.PageSize);
+            return response;
+        }
+
         public async Task<PaymentDto> FindByExternalOrderIdAsync(string externalOrderId)
         {
             Payment PaymentsFound = await _paymentRepository.FindByExternalOrderIdAsync(externalOrderId);
@@ -129,12 +157,6 @@ namespace simur_backend.Services.Payments
         {
             Payment PaymentFound = await _paymentRepository.FindByIdAsync(paymentId);
             return _mapper.Parse(PaymentFound);
-        }
-
-        public async Task<List<PaymentDto>> FindByMerchantDocAsync(string merchantDoc)
-        {
-            List<Payment> PaymentsFound = await _paymentRepository.FindByMerchantDocAsync(merchantDoc);
-            return _mapper.ParseList(PaymentsFound);
         }
 
         public async Task<PaymentDto> UpdatePaymentStatusAsync(PaymentStatusHistory paymentStatus)
