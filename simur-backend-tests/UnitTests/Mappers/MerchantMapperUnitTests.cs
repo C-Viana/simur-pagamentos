@@ -3,7 +3,7 @@ using simur_backend.Mappers;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
 
-namespace simur_backend_tests.UnitTests
+namespace simur_backend_tests.UnitTests.Mappers
 {
     public class MerchantMapperUnitTests
     {
@@ -25,7 +25,8 @@ namespace simur_backend_tests.UnitTests
                 "11997672338",
                 new Address(),
                 "53178402000147",
-                "0102953"
+                "0102",
+                "10000011"
             );
         }
 
@@ -41,7 +42,8 @@ namespace simur_backend_tests.UnitTests
                 PhoneNumber = "11997672338",
                 Address = new Address(),
                 PixKey = "53178402000147",
-                BankAccountId = "0102953"
+                MCC = "0102",
+                BankAccountId = "10000011"
             };
         }
 

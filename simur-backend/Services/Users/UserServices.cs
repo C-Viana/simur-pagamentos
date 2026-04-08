@@ -102,7 +102,6 @@ namespace simur_backend.Services.Users
 
         public async Task<bool> RevokeTokenAsync(string username)
         {
-
             User foundUser = await _repository.FindByUsernameAsync(username);
             if (foundUser == null) return false;
 

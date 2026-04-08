@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using simur_backend.Models.Entities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace simur_backend.Repositories.CustomerRepository
 {

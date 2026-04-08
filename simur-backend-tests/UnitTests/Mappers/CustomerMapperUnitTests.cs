@@ -3,7 +3,7 @@ using simur_backend.Mappers;
 using simur_backend.Models.DTO.V1;
 using simur_backend.Models.Entities;
 
-namespace simur_backend_tests.UnitTests
+namespace simur_backend_tests.UnitTests.Mappers
 {
     public class CustomerMapperUnitTests
     {

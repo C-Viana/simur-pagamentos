@@ -10,6 +10,12 @@ namespace simur_backend.Services.Customers
         private readonly ICustomerRepository _repository;
         private readonly CustomerConverter _mapper;
 
+        public CustomerServices(ICustomerRepository repository)
+        {
+            _repository = repository;
+            _mapper = new();
+        }
+
         private bool ValidadeCustomerPayloadForUpdate(Customer current, Customer updated)
         {
             bool phoneConformity = true, buyerIdConformity = true, addressConformity = true, emailConformity = true;
@@ -40,12 +46,6 @@ namespace simur_backend.Services.Customers
             }
 
             return phoneConformity && buyerIdConformity && addressConformity && emailConformity;
-        }
-
-        public CustomerServices(ICustomerRepository repository)
-        {
-            _repository = repository;
-            _mapper = new();
         }
 
         public async Task<CustomerDto> CreateCustomerAsync(CustomerDto customer)

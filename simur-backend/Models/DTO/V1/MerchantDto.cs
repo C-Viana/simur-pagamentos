@@ -13,7 +13,8 @@ namespace simur_backend.Models.DTO.V1
 
         [Required]
         [NotNull]
-        public string CompanyName { get; set; }
+        [Length(14, 14)]
+        public string Document { get; set; }
 
         [Required]
         [NotNull]
@@ -21,8 +22,7 @@ namespace simur_backend.Models.DTO.V1
 
         [Required]
         [NotNull]
-        [Length(14, 14)]
-        public string Document { get; set; }
+        public string CompanyName { get; set; }
 
         [Required]
         [NotNull]
@@ -33,6 +33,8 @@ namespace simur_backend.Models.DTO.V1
         [NotNull]
         [RegularExpression("^\\d{10,11}$")]
         public string PhoneNumber { get; set; }
+
+        public Address Address { get; set; }
 
         [Required]
         [NotNull]
@@ -45,8 +47,6 @@ namespace simur_backend.Models.DTO.V1
         [Required]
         [NotNull]
         public string BankAccountId { get; set; }
-
-        public Address Address { get; set; }
 
         public List<HypermediaLinks> Links { get; set; } = [];
     }

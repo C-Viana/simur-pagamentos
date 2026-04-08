@@ -2,7 +2,6 @@
 using MongoDB.Bson.Serialization.Attributes;
 using simur_backend.Models.Constants;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace simur_backend.Models.Entities
 {
