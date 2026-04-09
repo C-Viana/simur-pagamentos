@@ -63,8 +63,8 @@ function updatePaymentStatus(payment) {
   {
     case 'CREDIT_CARD':
         return cardManager.setCreditCardStatus(payment)
-    case 'BOLETO':
-        return slipManager.setBankSlipStatus(payment)
+//    case 'BOLETO':
+//        return slipManager.setBankSlipStatus(payment)
     case 'PIX_DYNAMIC':
     case 'PIX_STATIC':
         return pixManager.setPixStatus(payment)

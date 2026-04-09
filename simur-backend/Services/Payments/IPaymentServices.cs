@@ -25,5 +25,7 @@ namespace simur_backend.Services.Payments
         Task<PaymentMethod> CreatePaymentDetailsAsync(PaymentMethod paymentMethodDetails);
         Task<PaymentMethod> UpdatePaymentDetailsAsync(PaymentMethod paymentMethodDetails);
         Task<PaymentMethod> DeletePaymentDetailsAsync(Guid id);
+
+        Task<string> DownloadBoletoAsync(Guid PaymentId);
     }
 }

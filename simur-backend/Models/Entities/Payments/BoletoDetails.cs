@@ -9,6 +9,9 @@ namespace simur_backend.Models.Entities.Payments
     public class BoletoDetails : IPaymentDetails
     {
         [Required]
+        public string PayerName { get; init; }
+
+        [Required]
         public string BeneficiaryName { get; init; }
 
         [Required]
@@ -72,14 +75,14 @@ namespace simur_backend.Models.Entities.Payments
                 DueDate.ToDateTime(TimeOnly.MinValue),
                 Amount,
                 BeneficiaryId,
-                OurNumber,
+                OurNumber.Remove(OurNumber.Length-1),
                 DocumentModality
             );
 
             DigitableLine = BoletoUtilities.CreateReadableLine(BankCode, "9", Amount, $"{Barcode[5]}", BeneficiaryId, OurNumber, DocumentModality);
 
             Instructions = $"Não receber após vencimento.\nBoleto referente ao pagamento {PaymentId} de {GeneratedAt}";
-            BoletoUrl = $"{httpRequest.Scheme}://{httpRequest.Host}{httpRequest.PathBase}/boleto/{PaymentId}";
+            BoletoUrl = $"{httpRequest.Scheme}://{httpRequest.Host}{httpRequest.PathBase}/boletos/boleto-{PaymentId}";
             return this;
         }
     }

@@ -8,6 +8,7 @@ using simur_backend.Models.Entities;
 using simur_backend.Models.Entities.Payments;
 using simur_backend.Models.Pagination;
 using simur_backend.Repositories.PaymentRepository;
+using simur_backend.Utilities;
 
 namespace simur_backend.Services.Payments
 {
@@ -52,6 +53,7 @@ namespace simur_backend.Services.Payments
                 {
                     case PaymentType.BOLETO:
                         payment.PaymentDetails = ((BoletoDetails)payment.PaymentDetails).GenerateSlipCodes(CreatedPayment.Id, CreatedPayment.Amount, context.Request);
+                        _logger.LogInformation("CÓDIGO DE BARRAS COM {digits} DÍGITOS", ((BoletoDetails)payment.PaymentDetails).Barcode);
                         break;
                     case PaymentType.PIX_DYNAMIC:
                         merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
@@ -80,8 +82,14 @@ namespace simur_backend.Services.Payments
                 PaymentStatusHistory paymentStatusUpdate = new(CreatedPayment.Id, SavedMethod.PaymentType, CreatedPayment.Status, "Pagamento registrado no sistema", NewPayment.CreatedAt);
                 await _statusHistoryRepository.CreateHistoryInfoAsync(_sessionHandle, paymentStatusUpdate);
                 _logger.LogInformation("Finished creating status entry {status} for payment from order {order}", paymentStatusUpdate.Status, payment.ExternalOrderId);
-                await _broker.PublishPaymentStatus(paymentStatusUpdate);
 
+                if (payment.PaymentDetails.PaymentType == PaymentType.BOLETO)
+                {
+                    var pdf = new BoletoPdfGenerator().Create(payment);
+                    SaveBoleto(CreatedPayment.Id, pdf);
+                }
+
+                await _broker.PublishPaymentStatus(paymentStatusUpdate);
                 await _sessionHandle.CommitTransactionAsync();
 
                 PaymentDto paymentResponse = _mapper.Parse(CreatedPayment);
@@ -95,6 +103,13 @@ namespace simur_backend.Services.Payments
                 _logger.LogError(ex, "Payment transaction failed");
                 throw;
             }
+        }
+
+        private static void SaveBoleto(Guid paymentId, byte[] pdf)
+        {
+            if (!Directory.Exists("boletos\\"))
+                Directory.CreateDirectory("boletos\\");
+            File.WriteAllBytes($"boletos\\boleto-{paymentId}.pdf", pdf);
         }
 
         public async Task<PaymentDto> DeleteAsync(Guid paymentId)
@@ -252,6 +267,17 @@ namespace simur_backend.Services.Payments
                 _logger.LogError(ex, "Payment transaction failed");
                 throw;
             }
+        }
+
+        public async Task<string> DownloadBoletoAsync(Guid PaymentId)
+        {
+            if (PaymentId == Guid.Empty) throw new ArgumentNullException("Payment ID is either null or empty. An ID must be specified");
+            Payment PaymentFound = await _paymentRepository.FindByIdAsync(PaymentId);
+            if (PaymentFound == null) throw new ArgumentNullException("No payment found for ID " + PaymentId.ToString());
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "storage", "boletos", $"boleto-{PaymentId.ToString()}.pdf");
+            _logger.LogInformation("Checking if file exists in path {filePath}", filePath);
+            if (!File.Exists(filePath)) return null;
+            return filePath;
         }
     }
 }

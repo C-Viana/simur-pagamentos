@@ -26,6 +26,7 @@ namespace simur_backend.Controllers.V1
         [HttpPost(Name = "CreatePayment")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
         public async Task<IActionResult> CreatePayment([FromBody] PaymentDto payment)
@@ -41,6 +42,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("{paymentId}", Name = "FindPaymentById")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindPaymentById([FromRoute] Guid paymentId)
         {
@@ -56,6 +58,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("date/{paymentDate}", Name = "FindByPaymentByDate")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindByPaymentByDate(DateOnly paymentDate)
@@ -81,6 +84,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("date/{paymentDate}/pagination", Name = "PagedFindByPaymentByDate")]
         [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PagedResponse<PaymentDto>>> PagedFindByPaymentByDate([FromRoute] DateOnly paymentDate, [FromQuery] PaginationParams pageParams)
@@ -106,6 +110,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("customer/{customerDoc}", Name = "FindPaymentByCustomerDocument")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindPaymentByCustomerDocument([FromRoute] string customerDoc)
@@ -126,6 +131,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("customer/{customerDoc}/pagination", Name = "PagedFindPaymentByCustomerDocument")]
         [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PagedResponse<PaymentDto>>> PagedFindPaymentByCustomerDocument([FromRoute] string customerDoc, [FromQuery] PaginationParams pageParams)
@@ -146,6 +152,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("merchant/{merchantDoc}", Name = "FindPaymentByMerchantDoc")]
         [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindPaymentByMerchantDoc([FromRoute] string merchantDoc)
@@ -166,6 +173,7 @@ namespace simur_backend.Controllers.V1
         [HttpGet("merchant/{merchantDoc}/pagination", Name = "PagedFindPaymentByMerchantDoc")]
         [ProducesResponseType(typeof(PagedResponse<PaymentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PagedResponse<PaymentDto>>> PagedFindPaymentByMerchantDoc([FromRoute] string merchantDoc, [FromQuery] PaginationParams pageParams)
@@ -186,6 +194,8 @@ namespace simur_backend.Controllers.V1
         [HttpGet("order/{externalOrderId}", Name = "FindPaymentByExternalOrderId")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> FindPaymentByExternalOrderId([FromRoute] string externalOrderId)
         {
@@ -200,6 +210,7 @@ namespace simur_backend.Controllers.V1
         [HttpPut(Name = "UpdatePaymentStatus")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdatePaymentStatus([FromBody] PaymentStatusHistory paymentStatus)
         {
@@ -216,6 +227,7 @@ namespace simur_backend.Controllers.V1
         [HttpDelete("{paymentId}", Name = "DeletePaymentById")]
         [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeletePaymentById([FromRoute] Guid paymentId)
         {
@@ -224,6 +236,23 @@ namespace simur_backend.Controllers.V1
             if (updatedPayment == null) _logger.LogInformation("Deletion not executed. No payment found with ID {paymentId}", paymentId.ToString());
             else _logger.LogInformation("Payment with ID {paymentId} successfully deleted", paymentId.ToString());
             return NoContent();
+        }
+
+        [HttpGet("boleto/{paymentId}", Name = "DownloadBoletoByPaymentIdAsync")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DownloadBoletoByPaymentIdAsync([FromRoute] Guid paymentId)
+        {
+            _logger.LogInformation("Fetching slip file for payment with ID {id}", paymentId.ToString());
+            string filePath = await _service.DownloadBoletoAsync(paymentId);
+
+            if (string.IsNullOrEmpty(filePath)) return NotFound($"No slip file found for payment ID {paymentId.ToString()}");
+
+            _logger.LogInformation("Sending requested file to client");
+            return PhysicalFile(filePath, "application/pdf", $"boleto-{paymentId.ToString("N")}.pdf");
         }
     }
 }

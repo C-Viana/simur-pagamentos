@@ -36,8 +36,9 @@ try
 
     // Add services to the container.
     builder.Services.AddControllers(
-        options => options.Filters.Add<HypermediaFilter>()
-        )
+        options => {
+            options.Filters.Add<HypermediaFilter>();
+        })
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
