@@ -24,7 +24,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    Env.Load();
+    //Env.Load();
 
     builder.Services.AddHealthConfiguration();
 
