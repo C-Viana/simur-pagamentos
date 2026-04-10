@@ -44,6 +44,8 @@ services:
             timeout: 10s
             retries: 5
             start_period: 40s
+        networks:
+            - master
     
     global-acquirer:
         container_name: global-acquirer
@@ -57,6 +59,8 @@ services:
         depends_on:
             broker:
                 condition: service_healthy
+        networks:
+            - master
 
     simur:
         image: simur-backend:1.0.0
