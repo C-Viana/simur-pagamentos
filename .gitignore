@@ -3,6 +3,7 @@
 
 ### Custom ignore profile ###
 .env
+.env*
 *.env
 
 ### ASPNETCore ###
