@@ -1,7 +1,6 @@
 services:
     mongo1:
         image: mongo:latest
-        hostname: localhost
         container_name: mongo1
         ports:
             - "27018:27017"
@@ -9,7 +8,13 @@ services:
         volumes:
             - mongo1-data:/data/db
         networks:
-            - mongo-cluster
+            - master
+        healthcheck:
+            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 20s
         
     mongo-setup:
         image: mongo:latest
@@ -19,7 +24,7 @@ services:
             - ./init-mongo-replicaset.sh:/scripts/init-mongo-replicaset.sh
         entrypoint: ["bash", "/scripts/init-mongo-replicaset.sh"]
         networks:
-            - mongo-cluster
+            - master
         restart: "no"
 
     broker:
@@ -53,11 +58,34 @@ services:
             broker:
                 condition: service_healthy
 
+    simur:
+        image: simur-backend:1.0.0
+        container_name: simur
+        ports:
+            - "7033:7033"
+            - "5254:5254"
+        env_file:
+            - ./simur-backend/.env
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+            - ASPNETCORE_URLS=https://0.0.0.0:7033;http://0.0.0.0:5254
+            - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+            - ASPNETCORE_Kestrel__Certificates__Default__Password=12345678
+        volumes:
+            - ~/.aspnet/https:/https:ro
+        depends_on:
+            broker:
+                condition: service_healthy
+            mongo1:
+                condition: service_healthy
+        networks:
+            - master
+
 volumes:
     rabbitmq_data:
     mongo1-data:
         driver: local
 
 networks:
-    mongo-cluster:
+    master:
         driver: bridge

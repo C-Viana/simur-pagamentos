@@ -50,7 +50,8 @@ try
 
     builder.Services.AddOpenApi();
 
-    builder.Services.AddDatabaseConfiguration(builder.Configuration);
+    //builder.Services.AddDatabaseConfiguration(builder.Configuration);
+    builder.Services.AddDatabaseConfigurationFromEnvironmet(builder.Configuration);
 
     builder.Services.AddAuthConfiguration(builder.Configuration);
     builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();

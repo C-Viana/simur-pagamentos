@@ -63,7 +63,7 @@ namespace simur_backend.Messaging
         private async Task InitializeRabbitMQ()
         {
             _channel = await RabbitMqSetupService.GetChannelAsync(_configuration);
-            _logger.LogInformation("Consumer connected to queue {Queue}", _sectionPrefix["Queue"]);
+            _logger.LogInformation("Consumer connected to queue {Queue}", Environment.GetEnvironmentVariable("RABBITMQ_CONSUMER_QUEUE"));
         }
 
         public async Task ConsumePayments(CancellationToken stoppingToken)
@@ -108,7 +108,7 @@ namespace simur_backend.Messaging
             };
 
             await _channel.BasicConsumeAsync(
-                queue: _sectionPrefix["Queue"],
+                queue: Environment.GetEnvironmentVariable("RABBITMQ_CONSUMER_QUEUE"),
                 autoAck: false,
                 consumer: consumer);
 

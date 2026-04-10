@@ -11,21 +11,23 @@ namespace simur_backend.Messaging
 
         private static IConnection _connection;
         private static IChannel _channel;
-
+        //Set connection params
         private static readonly string HOSTNAME = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME");
         private static readonly string USERNAME = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
         private static readonly string PASSWORD = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
         private static readonly int PORT = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT"));
-
-        private static string _publisherQueue;
-        private static string _publisherExchange;
-        private static string _publisherRoutingKey;
-        private static string _consumerExchange;
-        private static string _consumerRoutingKey;
-        private static string _consumerQueue;
-        private static string _dlqExchange;
-        private static string _dlqRoutingKey;
-        private static string _dlqQueue;
+        //Set a publisher queue
+        private static readonly string _publisherQueue = Environment.GetEnvironmentVariable("RABBITMQ_PUBLISHER_QUEUE");
+        private static readonly string _publisherExchange = Environment.GetEnvironmentVariable("RABBITMQ_CONSUMER_EXCHANGE");
+        private static readonly string _publisherRoutingKey = Environment.GetEnvironmentVariable("RABBITMQ_PUBLISHER_ROUTINGKEY");
+        //Set a consumer queue
+        private static readonly string _consumerExchange = Environment.GetEnvironmentVariable("RABBITMQ_CONSUMER_EXCHANGE");
+        private static readonly string _consumerRoutingKey = Environment.GetEnvironmentVariable("RABBITMQ_CONSUMER_ROUTINGKEY");
+        private static readonly string _consumerQueue = Environment.GetEnvironmentVariable("RABBITMQ_CONSUMER_QUEUE");
+        //Set a Dead Letter Queue
+        private static readonly string _dlqExchange = Environment.GetEnvironmentVariable("RABBITMQ_DEADLETTERS_EXCHANGE");
+        private static readonly string _dlqRoutingKey = Environment.GetEnvironmentVariable("RABBITMQ_DEADLETTERS_ROUTINGKEY");
+        private static readonly string _dlqQueue = Environment.GetEnvironmentVariable("RABBITMQ_DEADLETTERS_QUEUE");
 
         private static List<string> _returnedMsgs = [];
 
@@ -45,19 +47,6 @@ namespace simur_backend.Messaging
 
             StartLogger();
             var rabbitSection = configuration.GetSection("MessageBroker:RabbitMQ");
-
-            //Set a Dead Letter Queue
-            _dlqExchange = rabbitSection["DeadLetters:Exchange"];
-            _dlqRoutingKey = rabbitSection["DeadLetters:RoutingKey"];
-            _dlqQueue = rabbitSection["DeadLetters:Queue"];
-            //Set a consumer queue
-            _consumerExchange = rabbitSection["Consumer:Exchange"];
-            _consumerRoutingKey = rabbitSection["Consumer:RoutingKey"];
-            _consumerQueue = rabbitSection["Consumer:Queue"];
-            //Set a publisher queue
-            _publisherQueue = rabbitSection["Publisher:Queue"];
-            _publisherExchange = rabbitSection["Publisher:Exchange"];
-            _publisherRoutingKey = rabbitSection["Publisher:RoutingKey"];
 
             //Set up Dead Letter queue configurations
             var queueArgs = new Dictionary<string, object>

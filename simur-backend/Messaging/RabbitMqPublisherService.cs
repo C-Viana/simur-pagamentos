@@ -25,7 +25,7 @@ namespace simur_backend.Messaging
         private async Task InitializeRabbitMQ()
         {
             _channel = await RabbitMqSetupService.GetChannelAsync(_configuration);
-            _logger.LogInformation("Producer initialized to queue {Queue}", _sectionPrefix["Queue"]);
+            _logger.LogInformation("Producer initialized to queue {Queue}", Environment.GetEnvironmentVariable("RABBITMQ_PUBLISHER_QUEUE"));
         }
 
         public async Task PublishPaymentStatus(PaymentStatusHistory statusEntry)
