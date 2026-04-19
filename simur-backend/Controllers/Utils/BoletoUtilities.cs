@@ -108,7 +108,10 @@ namespace simur_backend.Controllers.Utils
         public BoletoUtilities SetOurNumber(string ourNumber)
         {
             //FIELD DEFINED BY DOC EMITTER. CHOSED TO USE 14 DIGITS
-            _BarcodeDigits.Append(ourNumber);
+            //IF ESTIMATED BAR CODE HAS MORE THAN 44 DIGITS, THEN OUR NUMBER IS CUT SO TO ACOMMODATE LENGTH TO PATTERN
+            int previewSize = _BarcodeDigits.Length + ourNumber.Length + 4;
+            int dif = (previewSize > 44) ? previewSize - 43 : 0;
+            _BarcodeDigits.Append(ourNumber.Remove(ourNumber.Length-dif));
             return this;
         }
 

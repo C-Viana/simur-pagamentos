@@ -53,7 +53,7 @@ namespace simur_backend.Services.Payments
                 {
                     case PaymentType.BOLETO:
                         payment.PaymentDetails = ((BoletoDetails)payment.PaymentDetails).GenerateSlipCodes(CreatedPayment.Id, CreatedPayment.Amount, context.Request);
-                        _logger.LogInformation("CÓDIGO DE BARRAS COM {digits} DÍGITOS", ((BoletoDetails)payment.PaymentDetails).Barcode);
+                        //_logger.LogInformation("CÓDIGO DE BARRAS COM {digits} DÍGITOS", ((BoletoDetails)payment.PaymentDetails).Barcode);
                         break;
                     case PaymentType.PIX_DYNAMIC:
                         merchant = await _merchantService.FindMerchantByDocumentAsync(payment.SellerDocument);
