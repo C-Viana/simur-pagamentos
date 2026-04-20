@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace simur_backend.Controllers.Utils
 {
@@ -58,6 +59,12 @@ namespace simur_backend.Controllers.Utils
         public BoletoUtilities SetBankId(string bankId)
         {
             //Up to 3 digits
+            if (bankId.Length < 3)
+                bankId = bankId.PadLeft(3, '0');
+            else if (bankId.Length > 3 && bankId.StartsWith("0"))
+                bankId = bankId.Substring(1);
+            else if(!Regex.IsMatch(bankId, "[0-9]{3}"))
+                throw new BadHttpRequestException("O Número de Compensação (código do banco) deve ter 3 dígitos");
             _BarcodeDigits.Append(bankId);
             return this;
         }
@@ -80,8 +87,8 @@ namespace simur_backend.Controllers.Utils
                 if (DaysDiff > 9999)
                 {
                     int Year = dueDate.Year;
-                    string Month = (dueDate.Month < 10) ? "0" + dueDate.Month : "" + dueDate.Month;
-                    string Day = (dueDate.Day < 10) ? "0" + dueDate.Day : "" + dueDate.Day;
+                    //string Month = (dueDate.Month < 10) ? "0" + dueDate.Month : "" + dueDate.Month;
+                    //string Day = (dueDate.Day < 10) ? "0" + dueDate.Day : "" + dueDate.Day;
                     _BarcodeDigits.Append($"{Year}");
                 }
                 else
@@ -134,9 +141,15 @@ namespace simur_backend.Controllers.Utils
                 if (multiplier > 9) multiplier = 2;
             }
             sum *= 10;
-            _VerificationCode = (sum % 11);
+            int resto = (sum % 11);
+            int dv = 11 - resto;
 
-            _BarcodeDigits.Insert(5, string.Empty + _VerificationCode);
+            if (dv == 0 || dv == 10 || dv == 11)
+                _VerificationCode = 1;
+            else
+                _VerificationCode = dv;
+
+            _BarcodeDigits.Insert(4, _VerificationCode.ToString());
 
             return this;
         }
