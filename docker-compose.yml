@@ -84,6 +84,7 @@ services:
                 condition: service_healthy
         networks:
             - master
+            - shared-network
 
 volumes:
     rabbitmq_data:
@@ -93,3 +94,5 @@ volumes:
 networks:
     master:
         driver: bridge
+    shared-network:
+        external: true
