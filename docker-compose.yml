@@ -51,7 +51,7 @@ services:
         container_name: global-acquirer
         image: node:20
         ports:
-            - 3000:3000
+            - 3001:3000
         volumes:
         - ./global-acquirer:/backend
         command: bash -c "cd backend && npm i && npm start"
@@ -76,7 +76,7 @@ services:
             - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
             - ASPNETCORE_Kestrel__Certificates__Default__Password=12345678
         volumes:
-            - ~/.aspnet/https:/https:ro
+            - ~/.aspnet/https:/https
         depends_on:
             broker:
                 condition: service_healthy

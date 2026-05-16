@@ -34,6 +34,8 @@ try
         configuration.ReadFrom.Configuration(context.Configuration);
     });
 
+    builder.Services.AddCorsPolicies();
+
     // Add services to the container.
     builder.Services.AddControllers(
         options => {
@@ -81,17 +83,19 @@ try
     app.UseMiddleware<SimurExceptionHandler>();
 
     app.UseHttpsRedirection();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
+    app.UseRouting();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
+        app.UseCors("DevelopmentCors");
         app.MapOpenApi().AllowAnonymous();
         app.MapScalarApiReference().AllowAnonymous();
         app.Map("/", () => Results.Redirect("/scalar")).AllowAnonymous();
     }
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapControllers();
     app.UseHateoasRoutes();
